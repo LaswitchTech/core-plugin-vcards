@@ -10,7 +10,7 @@
 ## Description
 **Author(s)**: [LaswitchTech](support@laswitchtech.com)
 
-LaswitchTech - Core Framework extension.
+LaswitchTech - Core Framework extension. This extension provides support for vCards, allowing users to manage and share contact information in a standardized format.
 
 ## License
 This software is distributed under the [GPLv3](LICENSE) license.
