@@ -1,136 +1,113 @@
 <?php
 
-/**
- * Core Framework - VcardsModel
- *
- * @license    MIT (https://mit-license.org/)
- * @author     Louis Ouellet <louis@laswitchtech.com>
- */
-
 // Import additionnal class into the global namespace
-use \LaswitchTech\Core\Abstracts\Model;
+use \LaswitchTech\Core\Base\BaseModel;
 
-class VcardsModel extends Model {
+class VcardsModel extends BaseModel {
 
     /**
-     * Retrieve vCards
-     *
-     * @param int $organization
-     * @return array
+     * Constructor
      */
-    public function list(int $organization): array
+    public function __construct()
     {
-        // Create the Query
-        $Query = $this->Database->query()
-            ->table('vcards')
-            ->select('*')
-            ->join('owner', 'users', 'username')
-            ->join('state', 'states', 'code')
-            ->join('country', 'countries', 'code')
-            ->join('organization', 'organizations', 'id')
-            ->order('id', 'ASC')
-            ->filter()
-            ->where('id', 9999, '<>')
-            ->filter()
-            ->where('organization', $organization);
+        // Call the parent constructor
+        parent::__construct();
 
-        // Retrieve the Results
-        $result = $Query->result();
-
-        // Decode JSON Fields
-        foreach($result as $key => $record){
-            $result[$key]['tags'] = json_decode($record['tags'] ?? '[]', true);
-            $result[$key]['industries'] = json_decode($record['industries'] ?? '[]', true);
-        }
-
-        // Return the Results
-        return $result;
+        // Initialize the Model
+        $this->init('vcards');
     }
 
     /**
-     * Retrieve vCards's Details
+     * Retrieve multiple records
+     *
+     * @param array $conditions
+     * @return array
+     */
+    public function fetchAll(array $conditions = [], string $conjunction = 'AND'): array
+    {
+        // Create the Query
+        $Query = $this->Database->query()
+            ->table($this->table)
+            ->select('*')
+            ->join('owner', 'users', 'username')
+            ->join('avatar', 'files', 'id')
+            ->join('country', 'countries', 'code')
+            ->join('state', 'states', 'code')
+            ->join('organization', 'organizations', 'id')
+            ->filter()
+            ->where('id', 9999, '<>')
+            ->where('organization', $this->Auth->user()->organization()->id);
+
+        // Check if the conditions are empty
+        if(!empty($conditions)){
+
+            // Add a Filter
+            $Query->filter();
+
+            // Add the Conditions
+            foreach($conditions as $key => $condition){
+
+                // Check if the key exists in the definition
+                if(!array_key_exists($condition['key'], $this->definition)){
+
+                    // Remove the key from the data
+                    unset($conditions[$key]);
+                    continue;
+                }
+
+                // Add the condition to the Query
+                $Query->where($condition["key"], $condition["value"], $condition["operator"], $conjunction);
+            }
+        }
+
+        // Retrieve the Results
+        $records = $Query->fetch();
+
+        // Loop through the records to process them
+        foreach($records as $key => $record){
+
+            // Overwrite the record with the processed one
+            $records[$key] = $this->process($record);
+        }
+
+        // Return the Results
+        return $records;
+    }
+
+    /**
+     * Retrieve a single record
      *
      * @param int $id
      * @return array
      */
-    public function get(int $id): array
+    public function fetch(int $id): array
     {
         // Create the Query
         $Query = $this->Database->query()
-            ->table('vcards')
+            ->table($this->table)
             ->select('*')
             ->join('owner', 'users', 'username')
-            ->join('state', 'states', 'code')
-            ->join('country', 'countries', 'code')
-            ->join('organization', 'organizations', 'id')
             ->join('avatar', 'files', 'id')
-            ->order('id', 'ASC')
+            ->join('country', 'countries', 'code')
+            ->join('state', 'states', 'code')
+            ->join('organization', 'organizations', 'id')
             ->filter()
             ->where('id', 9999, '<>')
             ->filter()
-            ->where('id', $id)
+            ->where($this->primary, $id)
             ->limit(1);
 
-        // Retrieve the Results
-        $result = $Query->result();
+        // Retrieve the record
+        $records = $Query->fetch();
 
-        // Decode JSON Fields
-        foreach($result as $key => $record){
-            $result[$key]['tags'] = json_decode($record['tags'] ?? '[]', true);
-            $result[$key]['industries'] = json_decode($record['industries'] ?? '[]', true);
-            $result[$key]['organization']['users'] = json_decode($record['organization']['users'] ?? '[]', true);
+        // Loop through the records to process them
+        foreach($records as $key => $record){
+
+            // Overwrite the record with the processed one
+            $records[$key] = $this->process($record);
         }
 
-        // Return the Results
-        return $result[array_key_first($result)] ?? [];
-    }
-
-    /**
-     * Create a new vCard and return the id
-     *
-     * @param array $data
-     * @return int
-     */
-    public function create(array $data): int
-    {
-        // Create the Query
-        $Query = $this->Database->query()
-            ->table('vcards')
-            ->insert($data);
-
-        // Execute the Query
-        $affectedRows = $Query->execute();
-
-        // Execute the Query
-        return $Query->lastId();
-    }
-
-    /**
-     * Update a vCard
-     *
-     * @param int $id
-     * @param array $data
-     * @return int
-     */
-    public function update(int $id, array $data): int
-    {
-        // Create the Query
-        $Query = $this->Database->query()
-            ->table('vcards')
-            ->update($data)
-            ->where('id', $id);
-
-        // Execute the Query
-        return $Query->execute();
-    }
-
-    /**
-     * Describe the vCards Table
-     *
-     * @return array
-     */
-    public function describe(): array
-    {
-        return $this->Database->schema()->define('vcards')->describe();
+        // Return the record or an empty array if not found
+        return $records[array_key_first($records)] ?? [];
     }
 }
