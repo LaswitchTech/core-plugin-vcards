@@ -1,10 +1,3 @@
-//
-//   Core Framework - Script file
-//
-//   @license    MIT (https://mit-license.org/)
-//   @author     Louis Ouellet <louis@laswitchtech.com>
-//
-
 // vCards
 const vCardForm = function(form,values = {},modal = null){
 
@@ -51,20 +44,6 @@ const vCardForm = function(form,values = {},modal = null){
             }
         }
     }
-
-    // csrf
-    form.add(
-        {
-            name: CSRF_KEY,
-            label: 'csrf',
-            icon: 'hash',
-            type: 'hidden',
-            value: CSRF_TOKEN,
-        },
-        function(input,form){
-            input.css('display','none');
-        },
-    );
 
     // name
     form.add(
@@ -400,7 +379,7 @@ const vCardForm = function(form,values = {},modal = null){
 }
 const vCardModal = function(id){
     $.ajax({
-        url: '/endpoint.php/vcards/details?id='+id,
+        url: '/api/vcards/fetch?id='+id,
         type: 'GET',dataType: 'json',
         success: function(response) {
             builder.Component(
@@ -489,35 +468,27 @@ const vCardModalAvatar = function(vcard){
                                 file.isPublic = 1;
                                 file.targetTable = 'vcards';
                                 file.targetId = vcard.id;
-                                file[CSRF_KEY] = CSRF_TOKEN;
 
                                 // AJAX Request
                                 $.ajax({
-                                    url: '/endpoint.php/files/upload',
+                                    url: '/api/files/upload',
+                                    headers: {'X-CSRF-Authorization': CSRF_KEY},
                                     type: 'POST',dataType: 'json',
                                     data: file,
                                     success: function(response) {
-
-                                        // Update the CSRF
-                                        CSRF_KEY = response.CSRF.key;
-                                        CSRF_TOKEN = response.CSRF.token;
 
                                         // Setup vCard update
                                         var vCardData = {
                                             avatar: response.record.id,
                                         };
-                                        vCardData[CSRF_KEY] = CSRF_TOKEN;
 
                                         // AJAX Request
                                         $.ajax({
-                                            url: '/endpoint.php/vcards/avatar?id='+vcard.id,
+                                            url: '/api/vcards/update?id='+vcard.id,
+                                            headers: {'X-CSRF-Authorization': CSRF_KEY},
                                             type: 'POST',dataType: 'json',
                                             data: vCardData,
                                             success: function(response) {
-
-                                                // Update the CSRF
-                                                CSRF_KEY = response.CSRF.key;
-                                                CSRF_TOKEN = response.CSRF.token;
 
                                                 // Update all the avatars
                                                 $('img[data-type="avatar"][data-vcard="'+vcard.id+'"]').each(function(){
@@ -538,20 +509,6 @@ const vCardModalAvatar = function(vcard){
                     },
                 },
                 function(form,component){
-
-                    // csrf
-                    form.add(
-                        {
-                            name: CSRF_KEY,
-                            label: 'csrf',
-                            icon: 'hash',
-                            type: 'hidden',
-                            value: CSRF_TOKEN,
-                        },
-                        function(input,form){
-                            input.css('display','none');
-                        },
-                    );
 
                     // file
                     form.add(
@@ -621,12 +578,11 @@ const vCardModalEdit = function(vcard){
                         },
                         submit: function(form){
                             $.ajax({
-                                url: '/endpoint.php/vcards/update?id='+vcard.id,
+                                url: '/api/vcards/update?id='+vcard.id,
+                                headers: {'X-CSRF-Authorization': CSRF_KEY},
                                 type: 'POST',dataType: 'json',
                                 data: form.val(),
                                 success: function(response) {
-                                    CSRF_KEY = response.CSRF.key;
-                                    CSRF_TOKEN = response.CSRF.token;
                                     modal.hide();
                                 }
                             });
@@ -650,7 +606,7 @@ function process_function_hasvCardProperty(task, value, callback = null){
 
         // AJAX Request
         $.ajax({
-            url: '/endpoint.php/vcards/details?id='+task.target.vcard.id,
+            url: '/api/vcards/fetch?id='+task.target.vcard.id,
             type: 'GET',dataType: 'json',
             success: function(response) {
 

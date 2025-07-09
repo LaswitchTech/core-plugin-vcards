@@ -1,337 +1,306 @@
 <?php
 
-/**
- * Core Framework - VcardsEndpoint
- *
- * @license    MIT (https://mit-license.org/)
- * @author     Louis Ouellet <louis@laswitchtech.com>
- */
-
 // Import additionnal class into the global namespace
-use \LaswitchTech\Core\Abstracts\Endpoint;
+use \LaswitchTech\Core\Base\BaseEndpoint;
 
-class VcardsEndpoint extends Endpoint {
+class VcardsEndpoint extends BaseEndpoint {
 
     /**
      * Constructor
      */
     public function __construct()
     {
-
-        // Call Parent Constructor
+        // Call the parent constructor
         parent::__construct();
 
-        // Retrieve the namespace
-        $namespace = $this->Request->getNamespace();
-
-        // Set Global access
-        $this->Public = false;
+        // Initialize the Endpoint
+        $this->init('vcards');
 
         // Set Properties
-        switch($namespace){
-            case "/vcards/index":
-            case "/vcards/details":
-            case "/vcards/preview":
-            case "/vcards/describe":
-                $this->Level = 1;
-                break;
-            case "/vcards/update":
-            case "/vcards/avatar":
-                $this->Level = 3;
-                break;
-        }
+        $this->required = ['subject','content','targetTable','targetId'];
     }
 
     /**
-     * Retrieve vCards
+     * Retrieve a record
      */
-    public function indexAction(): array
+    public function fetchAction(): array
     {
-        $records = $this->Model->Vcards->list($this->Auth->user()->organization()->id);
-        $message = [
-            "status" => 200,
-            "message" => "OK",
-            "data" => [
-                "records" => $records,
-            ]
-        ];
-        return $message;
-    }
+        // Call the parent constructor
+        $message = parent::fetchAction();
 
-    /**
-     * Retrieve vCard's Details
-     */
-    public function detailsAction(): array
-    {
-        // Set default message
-        $message = ["status" => 200, "message" => "OK", "data" => []];
-
-        // Retrieve the vCard
-        $vcard = $this->Model->Vcards->get(intval($this->Request->getParams('GET','id')));
-
-        // Initialize the edit mode
-        $edit = false;
-
-        // Check if the vCard exists
-        if(empty($vcard)){
-            $message = ["status" => 404, "message" => "Not Found", "data" => "Could not find the requested vCard."];
-        } else {
-
-            // Check if the vCard is accessible
-            if($vcard['organization']['id'] != $this->Auth->user()->organization()->id){
-                $message = ["status" => 403, "message" => "Forbidden", "data" => "You are not allowed to access this vCard."];
-            }
-        }
-
-        // If all good, return the vCard
+        // Check if the records is accessible
         if($message['status'] == 200){
+
+            // Initialize the edit mode
+            $edit = false;
+
+            // Evaluate the edit mode
             if(!$edit){
-                $edit = (!in_array($vcard['category'],['User','Organization']));
+                $edit = (!in_array($message['data']['record']['category'],['User','Organization']));
             }
             if(!$edit){
-                $edit = ($vcard['id'] == $this->Auth->user()->vcard['id']);
+                $edit = ($message['data']['record']['id'] == $this->Auth->user()->vcard['id']);
             }
             if(!$edit){
                 $edit = $this->Auth->isAuthorized("BusinessAccountManager", 3);
             }
-            $message['data'] = [
-                "record" => $vcard,
-                "edit" => $edit,
-                "preview" => $this->Helper->Vcards->format($vcard, $edit),
-                "relationships" => $this->Model->Relationship->get('vcards', $vcard['id']),
-            ];
+
+            // Save the edit mode
+            $message['data']['edit'] = $edit;
+
+            // Load the preview
+            $message['data']['preview'] = $this->Helper->Vcards->format($message['data']['record'], $edit);
+
+            // Check if the Relationship Plugin is accessible
+            if($this->Helper->Core->isInstalled('relationship')){
+                $message['data']['dependencies']['relationship'] = $this->Model->Relationship->get($this->basename, $message['data']['record']['id']);
+                if($this->Helper->Core->isInstalled('vcards') && array_key_exists('vcard', $message['data']['record'])){
+                    $message['data']['dependencies']['relationship'] = array_merge(
+                        $message['data']['dependencies']['relationship'],
+                        $this->Model->Relationship->get('vcards', $message['data']['record']['id'])
+                    );
+                }
+            }
+
+            // Check if the Events is accessible
+            if($this->Helper->Core->isInstalled('event')){
+                $message['data']['dependencies']['event'] = $this->Model->Event->fetchAll([
+                    ["key" => "targetTable", "operator" => "=", "value" => $this->basename],
+                    ["key" => "targetId", "operator" => "=", "value" => $message['data']['record']['id']],
+                    ["key" => "isArchived", "operator" => "<>", "value" => 1],
+                ]);
+            }
         }
+
+        // Return the message
         return $message;
     }
 
     /**
-     * Update a vCard
+     * Create a record
+     */
+    public function createAction(): array
+    {
+        // Call the parent constructor
+        $message = parent::createAction();
+
+        // Check if the record is accessible
+        if($message['status'] == 200){
+
+            // Retrieve the parameters
+            $parameters = $message['data']['parameters'];
+
+            // Initialize the fields array
+            $fields = [];
+
+            // Check if the Event Plugin is accessible
+            if($this->Helper->Core->isInstalled('event')){
+
+                // Initialize the Events
+                $message['data']['event'] = [];
+
+                // Setup a new event
+                $event = [
+                    'category' => 'Vcard',
+                    'message' => 'New Vcard Created by <vcard>'.$this->Auth->user()->vcard['id'].':'.$this->Auth->user()->username.'</vcard>',
+                    'icon' => 'circle',
+                    'color' => 'secondary',
+                    'link' => '/plugin/vcards/details?id='.$message['data']['record']['id'].'&name='.urlencode($message['data']['record']['name']),
+                    'targetTable' => 'vcards',
+                    'targetId' => $message['data']['record']['id'],
+                ];
+
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
+
+                // Setup a new event for the target
+                $event['link'] = '/plugin/'.$message['data']['record']['targetTable'].'/details?id='.$message['data']['record']['targetId'];
+                $event['targetTable'] = $message['data']['record']['targetTable'];
+                $event['targetId'] = $message['data']['record']['targetId'];
+
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
+            }
+
+            // Check if $fields is empty
+            if(!empty($fields)){
+                $affectedRows = $this->Model->Vcards->update($message['data']['record']['id'], $fields);
+            }
+        }
+
+        // Return the message
+        return $message;
+    }
+
+    /**
+     * Update a record
      */
     public function updateAction(): array
     {
-        // Import Global Variables
-        global $CSRF;
+        // Call the parent constructor
+        $message = parent::updateAction();
 
-        // Set the default message
-        $message = ["status" => 200, "message" => "OK", "data" => []];
-
-        // Check the request method
-        if($this->Request->getMethod() == "POST"){
-            $message["data"]["CSRF"] = [
-                "token" => $CSRF->token(),
-                "key" => $CSRF->key()
-            ];
-        }
-
-        // Retrieve the vCard id
-        $id = intval($this->Request->getParams('REQUEST','id'));
-
-        // Retrieve the vCard
-        $vCard = $this->Model->Vcards->get($id);
-
-        // Check if the vCard exists
-        if(empty($vCard)){
-            $message = ["status" => 404, "message" => "Not Found", "data" => "Could not find the requested vCard."];
-        }
-
-        // Check if the vCard is accessible
+        // Check if the record is accessible
         if($message['status'] == 200){
 
-            // Check the request method
-            if($this->Request->getMethod() == "POST"){
+            // Check if the Event Plugin is accessible
+            if($this->Helper->Core->isInstalled('event')){
 
-                // Retrieve the parameters
-                $parameters = $this->Request->getParams('REQUEST');
+                // Initialize the Events
+                $message['data']['event'] = [];
 
-                // Set Required Fields
-                $required = ['name','address','city','country','state','zipcode','email','phone','locale','website'];
+                // Setup a new event
+                $event = [
+                    'category' => 'Vcard',
+                    'message' => 'Vcard Updated by <vcard>'.$this->Auth->user()->vcard['id'].':'.$this->Auth->user()->username.'</vcard>',
+                    'icon' => 'circle',
+                    'color' => 'secondary',
+                    'link' => '/plugin/vcards/details?id='.$message['data']['record']['id'].'&name='.urlencode($message['data']['record']['name']),
+                    'targetTable' => 'vcards',
+                    'targetId' => $message['data']['record']['id'],
+                ];
 
-                // Set Optional Fields
-                $optional = ['tollfree','mobile','fax','role','dba','title','tags','industries','businessNumber','taxExtension','importerExtension'];
-
-                // Set Unique Fields
-                $unique = ['id','created','modified','owner','category','organization','avatar'];
-
-                // Sanitize the parameters
-                foreach($parameters as $key => $value){
-                    if(in_array($key,['tags','industries']) && !is_array($value)){
-                        $value = json_decode($value, true);
-                        $parameters[$key] = $value;
-                    }
-                    if(!in_array($key,['country','state','locale','website','zipcode','email'])){
-                        if(!is_array($value)){
-                            if(in_array($key,['name','dba']) && in_array($vCard['category'],['Organization','Lead','Client'])){
-                                $parameters[$key] = $value;
-                            } else {
-                                $parameters[$key] = ucwords(strtolower($value));
-                            }
-                        } else {
-                            foreach($value as $k => $v){
-                                $parameters[$key][$k] = ucwords(strtolower($v));
-                            }
-                        }
-                    }
-                }
-
-                // Check if all required fields are set
-                if(count(array_intersect_key(array_flip($required), $parameters)) == count($required)){
-
-                    // Initialize the Events
-                    $message['data']['events'] = [];
-
-                    // Update the vCard
-                    foreach($required as $key){
-                        if(isset($parameters[$key])){
-                            $vCard[$key] = $parameters[$key];
-                        }
-                    }
-                    foreach($optional as $key){
-                        if(isset($parameters[$key])){
-                            $vCard[$key] = $parameters[$key];
-                        }
-                    }
-                    foreach($unique as $key){
-                        if(isset($vCard[$key])){
-                            unset($vCard[$key]);
-                        }
-                    }
-
-                    // Update the vCard
-                    $affectedRows = $this->Model->Vcards->update($id, $vCard);
-
-                    // Check if tags is set
-                    if(isset($parameters['tags'])){
-                        foreach($parameters['tags'] as $key => $tag){
-                            $this->Model->Tags->create($tag);
-                        }
-                    }
-
-                    // Check if industries is set
-                    if(isset($parameters['industries'])){
-                        foreach($parameters['industries'] as $key => $industry){
-                            $this->Model->Industries->create($industry);
-                        }
-                    }
-
-                    // Retrieve the final lead
-                    $message['data']['record'] = $this->Model->Vcards->get($id);
-                } else {
-                    $message['status'] = 400;
-                    $message['message'] = "Bad Request";
-                    $message['data']['error'] = "Some required fields are missing.";
-                }
-            } else {
-                $message = ["status" => 405, "message" => "Method Not Allowed", "data" => "The method is not allowed for the requested URL."];
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
             }
         }
 
+        // Return the message
         return $message;
     }
 
     /**
-     * Update a vCard's Avatar
+     * Delete a record
      */
-    public function avatarAction(): array
+    public function deleteAction(): array
     {
-        // Import Global Variables
-        global $CSRF;
+        // Call the parent constructor
+        $message = parent::deleteAction();
 
-        // Set the default message
-        $message = ["status" => 200, "message" => "OK", "data" => []];
-
-        // Check the request method
-        if($this->Request->getMethod() == "POST"){
-            $message["data"]["CSRF"] = [
-                "token" => $CSRF->token(),
-                "key" => $CSRF->key()
-            ];
-        }
-
-        // Retrieve the vCard id
-        $id = intval($this->Request->getParams('REQUEST','id'));
-
-        // Retrieve the vCards
-        $vCard = $this->Model->Vcards->get($id);
-        $owner = $this->Auth->user()->username;
-        $vCardUser = $this->Auth->user()->vcard();
-
-        // Check if the vCard exists
-        if(empty($vCard)){
-            $message = ["status" => 404, "message" => "Not Found", "data" => "Could not find the requested vCard."];
-        }
-
-        // Check if the vCard is accessible
+        // Check if the record is accessible
         if($message['status'] == 200){
 
-            // Check the request method
-            if($this->Request->getMethod() == "POST"){
+            // Check if the Event Plugin is accessible
+            if($this->Helper->Core->isInstalled('event')){
 
-                // Retrieve the parameters
-                $parameters = $this->Request->getParams('REQUEST');
+                // Initialize the Events
+                $message['data']['event'] = [];
 
-                // Set Required Fields
-                $required = ['avatar'];
+                // Setup a new event
+                $event = [
+                    'category' => 'Vcard',
+                    'message' => 'Vcard Deleted by <vcard>'.$this->Auth->user()->vcard['id'].':'.$this->Auth->user()->username.'</vcard>',
+                    'icon' => 'circle',
+                    'color' => 'secondary',
+                    'link' => '/plugin/vcards/details?id='.$message['data']['record']['id'].'&name='.urlencode($message['data']['record']['name']),
+                    'targetTable' => 'vcards',
+                    'targetId' => $message['data']['record']['id'],
+                ];
 
-                // Set Optional Fields
-                $optional = [];
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
 
-                // Set Unique Fields
-                $unique = ['id','created','modified','owner','category','organization'];
+                // Setup a new event for the target
+                $event['link'] = '/plugin/'.$message['data']['record']['targetTable'].'/details?id='.$message['data']['record']['targetId'];
+                $event['targetTable'] = $message['data']['record']['targetTable'];
+                $event['targetId'] = $message['data']['record']['targetId'];
 
-                // Check if all required fields are set
-                if(count(array_intersect_key(array_flip($required), $parameters)) == count($required)){
-
-                    // Initialize the Events
-                    $message['data']['events'] = [];
-
-                    // Update the vCard
-                    foreach($required as $key){
-                        if(isset($parameters[$key])){
-                            $vCard[$key] = $parameters[$key];
-                        }
-                    }
-                    foreach($optional as $key){
-                        if(isset($parameters[$key])){
-                            $vCard[$key] = $parameters[$key];
-                        }
-                    }
-                    foreach($unique as $key){
-                        if(isset($vCard[$key])){
-                            unset($vCard[$key]);
-                        }
-                    }
-
-                    // Update the vCard
-                    $affectedRows = $this->Model->Vcards->update($id, ['avatar' => $vCard['avatar']]);
-
-                    // Create the an event
-                    $message['data']['events'][] = $this->Model->Event->create($owner, 'vcards', $id, 'Avatar', '<vcard>'.$vCardUser['id'].':'.$this->Auth->user()->username.'</vcard> has updated the avatar.');
-
-                    // Retrieve the final lead
-                    $message['data']['record'] = $this->Model->Vcards->get($id);
-                } else {
-                    $message['status'] = 400;
-                    $message['message'] = "Bad Request";
-                    $message['data']['error'] = "Some required fields are missing.";
-                }
-            } else {
-                $message = ["status" => 405, "message" => "Method Not Allowed", "data" => "The method is not allowed for the requested URL."];
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
             }
         }
 
+        // Return the message
         return $message;
     }
 
     /**
-     * Retrieve the vCards table definitions
+     * Archive a record
      */
-    public function describeAction():array
+    public function archiveAction(): array
     {
-        $message = [
-            "status" => 200,
-            "message" => "OK",
-            "data" => $this->Model->Vcards->describe()
-        ];
+        // Call the parent constructor
+        $message = parent::archiveAction();
+
+        // Check if the record is accessible
+        if($message['status'] == 200){
+
+            // Check if the Event Plugin is accessible
+            if($this->Helper->Core->isInstalled('event')){
+
+                // Initialize the Events
+                $message['data']['event'] = [];
+
+                // Setup a new event
+                $event = [
+                    'category' => 'Vcard',
+                    'message' => 'Vcard Archived by <vcard>'.$this->Auth->user()->vcard['id'].':'.$this->Auth->user()->username.'</vcard>',
+                    'icon' => 'circle',
+                    'color' => 'secondary',
+                    'link' => '/plugin/vcards/details?id='.$message['data']['record']['id'].'&name='.urlencode($message['data']['record']['name']),
+                    'targetTable' => 'vcards',
+                    'targetId' => $message['data']['record']['id'],
+                ];
+
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
+
+                // Setup a new event for the target
+                $event['link'] = '/plugin/'.$message['data']['record']['targetTable'].'/details?id='.$message['data']['record']['targetId'];
+                $event['targetTable'] = $message['data']['record']['targetTable'];
+                $event['targetId'] = $message['data']['record']['targetId'];
+
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
+            }
+        }
+
+        // Return the message
+        return $message;
+    }
+
+    /**
+     * Recover a record
+     */
+    public function recoverAction(): array
+    {
+        // Call the parent constructor
+        $message = parent::recoverAction();
+
+        // Check if the record is accessible
+        if($message['status'] == 200){
+
+            // Check if the Event Plugin is accessible
+            if($this->Helper->Core->isInstalled('event')){
+
+                // Initialize the Events
+                $message['data']['event'] = [];
+
+                // Setup a new event
+                $event = [
+                    'category' => 'Vcard',
+                    'message' => 'Vcard Recovered for <vcard>'.$message['data']['record']['id'].':'.$message['data']['record']['name'].'</vcard> by <vcard>'.$this->Auth->user()->vcard['id'].':'.$this->Auth->user()->username.'</vcard>',
+                    'icon' => 'circle',
+                    'color' => 'secondary',
+                    'link' => '/plugin/vcards/details?id='.$message['data']['record']['id'].'&name='.urlencode($message['data']['record']['name']),
+                    'targetTable' => 'vcards',
+                    'targetId' => $message['data']['record']['id'],
+                ];
+
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
+
+                // Setup a new event for the target
+                $event['link'] = '/plugin/'.$message['data']['record']['targetTable'].'/details?id='.$message['data']['record']['targetId'];
+                $event['targetTable'] = $message['data']['record']['targetTable'];
+                $event['targetId'] = $message['data']['record']['targetId'];
+
+                // Create the event
+                $message['data']['event'][] = $this->Model->Event->create($event);
+            }
+        }
+
+        // Return the message
         return $message;
     }
 }
