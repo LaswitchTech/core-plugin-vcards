@@ -1,0 +1,32 @@
+[
+    {
+        "id": 9999,
+        "created": "2025-04-07 15:10:38",
+        "modified": "2025-04-07 15:10:38",
+        "owner": "demo",
+        "category": null,
+        "name": null,
+        "dba": null,
+        "title": null,
+        "role": null,
+        "address": null,
+        "city": null,
+        "state": null,
+        "country": null,
+        "zipcode": null,
+        "email": null,
+        "tollfree": null,
+        "phone": null,
+        "mobile": null,
+        "fax": null,
+        "website": null,
+        "locale": null,
+        "tags": null,
+        "industries": null,
+        "businessNumber": null,
+        "taxExtension": null,
+        "importerExtension": null,
+        "avatar": null,
+        "organization": null
+    }
+]
