@@ -58,9 +58,6 @@ class VcardsHelper extends Helper {
                     case 'modified':
                     case 'owner':
                     case 'category':
-                    // case 'businessNumber':
-                    // case 'taxExtension':
-                    // case 'importerExtension':
                     case 'organization':
                     case 'avatar':
                         break;
@@ -85,14 +82,14 @@ class VcardsHelper extends Helper {
                     case 'tags':
                         $html .= '<div class="col-12"><div>'.$LOCALE->get(ucfirst($key)).'</div><div>';
                         foreach($value as $single){
-                            $html .= '<span class="badge bg-warning m-1"><i class="me-1 bi bi-tag"></i>'.$single.'</span>';
+                            $html .= '<span class="badge text-bg-warning m-1"><i class="me-1 bi bi-tag"></i>'.$single.'</span>';
                         }
                         $html .= '</div></div>';
                         break;
                     case 'industries':
                         $html .= '<div class="col-12"><div>'.$LOCALE->get(ucfirst($key)).'</div><div>';
                         foreach($value as $single){
-                            $html .= '<span class="badge bg-info m-1"><i class="me-1 bi bi-crosshair"></i>'.$single.'</span>';
+                            $html .= '<span class="badge text-bg-info m-1"><i class="me-1 bi bi-crosshair"></i>'.$single.'</span>';
                         }
                         $html .= '</div></div>';
                         break;
@@ -105,6 +102,26 @@ class VcardsHelper extends Helper {
                     case 'locale':
                         $html .= '<div class="col-6"><div>'.$LOCALE->get("Language").'</div><div>'.$LOCALE->list()[$value].'</div></div>';
                         break;
+                    case 'role':
+                        if(!in_array($vcard['category'],['Organization','Client','Lead'])){
+                            $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div>';
+                            foreach($value as $single){
+                                $html .= '<span class="badge text-bg-warning me-2">'.$single.'</span>';
+                            }
+                            $html .= '</div></div>';
+                        }
+                        break;
+                    case 'title':
+                        if(!in_array($vcard['category'],['Organization','Client','Lead'])){
+                            $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div><span class="badge text-bg-secondary">'.$value.'</span></div></div>';
+                        }
+                        break;
+                    case 'businessNumber':
+                    case 'taxExtension':
+                    case 'importerExtension':
+                        if(in_array($vcard['category'],['Organization','Client','Lead'])){
+                            break;
+                        }
                     default:
                         $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div>'.$value.'</div></div>';
                         break;

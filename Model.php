@@ -18,6 +18,28 @@ class VcardsModel extends BaseModel {
     }
 
     /**
+     * Process a record
+     *
+     * @param array $record
+     * @return array
+     */
+    protected function process(array $record): array
+    {
+        // Call the parent constructor
+        $record = parent::process($record);
+
+        // Check if the record has role
+        if(array_key_exists('role', $record) && !empty($record['role']) && !is_array($record['role'])){
+
+            // Process the roles
+            $record['role'] = json_decode($record['role'] ?? "[]", true);
+        }
+
+        // Return the processed record
+        return $record;
+    }
+
+    /**
      * Retrieve multiple records
      *
      * @param array $conditions
