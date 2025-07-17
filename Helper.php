@@ -119,7 +119,7 @@ class VcardsHelper extends Helper {
                     case 'businessNumber':
                     case 'taxExtension':
                     case 'importerExtension':
-                        if(in_array($vcard['category'],['Organization','Client','Lead'])){
+                        if(!in_array($vcard['category'],['Organization','Client','Lead'])){
                             break;
                         }
                     default:
