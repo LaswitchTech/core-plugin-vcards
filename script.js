@@ -101,7 +101,6 @@ const vCardForm = function(form,values = {},modal = null){
                 type: 'select2',
                 multiple: true,
                 options: [
-                    {id: 'Other', text: builder.Locale.get('Other')},
                     {id: 'General', text: builder.Locale.get('General')},
                     {id: 'Billing', text: builder.Locale.get('Billing')},
                     {id: 'Documents', text: builder.Locale.get('Documents')},
@@ -109,6 +108,7 @@ const vCardForm = function(form,values = {},modal = null){
                     {id: 'Signatory', text: builder.Locale.get('Signatory')},
                     {id: 'Administrator', text: builder.Locale.get('Administrator')},
                     {id: 'Owner', text: builder.Locale.get('Owner')},
+                    {id: 'Other', text: builder.Locale.get('Other')},
                 ],
                 value: Values.role,
                 class: {
