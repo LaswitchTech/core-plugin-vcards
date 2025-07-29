@@ -400,8 +400,8 @@ const vCardModal = function(id){
                     size: "lg",
                 },
                 function(modal,component){
-                    component.header.addClass('text-bg-primary');
-                    component.body.addClass('text-bg-dark rounded-bottom');
+                    component.addClass('modal-primary');
+                    component.body.addClass('rounded-bottom');
                     component.footer.remove();
                     // Check if response.record.category is in the list of categories [Lead, Customer, Supplier, Contact]
                     if(response.edit){
@@ -441,7 +441,7 @@ const vCardModalAvatar = function(vcard){
         },
         function(modal,component){
             const componentModal = component;
-            component.header.addClass('text-bg-info');
+            component.addClass('modal-info');
             component.footer.submit.addClass('btn-info').removeClass('btn-link').attr({
                 "style": "border-bottom-right-radius: var(--bs-modal-inner-border-radius) !important;border-bottom-left-radius: var(--bs-modal-inner-border-radius) !important;",
             }).text(builder.Locale.get('Upload'));
@@ -554,8 +554,8 @@ const vCardModalEdit = function(vcard){
         },
         function(modal,component){
             const componentModal = component;
-            component.header.addClass('text-bg-warning');
-            component.body.addClass('text-bg-dark rounded-bottom');
+            component.addClass('modal-warning');
+            component.body.addClass('rounded-bottom');
             component.footer.submit.addClass('btn-success').removeClass('btn-link').attr({
                 "style": "border-bottom-right-radius: var(--bs-modal-inner-border-radius) !important;border-bottom-left-radius: var(--bs-modal-inner-border-radius) !important;",
             });
