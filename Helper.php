@@ -62,10 +62,10 @@ class VcardsHelper extends Helper {
                     case 'avatar':
                         break;
                     case 'email':
-                        $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div><a class="link-info" href="mailto:'.$value.'"><i class="me-1 bi bi-envelope"></i>'.$value.'</a></div></div>';
+                        $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div><a class="link-primary" href="mailto:'.$value.'"><i class="me-1 bi bi-envelope"></i>'.$value.'</a></div></div>';
                         break;
                     case 'website':
-                        $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div><a class="link-info" href="'.$value.'"><i class="me-1 bi bi-globe-americas"></i>'.$value.'</a></div></div>';
+                        $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div><a class="link-primary" href="'.$value.'"><i class="me-1 bi bi-globe-americas"></i>'.$value.'</a></div></div>';
                         break;
                     case 'state':
                     case 'country':
@@ -77,7 +77,7 @@ class VcardsHelper extends Helper {
                     case 'mobile':
                     case 'phone':
                     case 'fax':
-                        $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div><a class="link-info" href="tel:'.$value.'"><i class="me-1 bi bi-telephone"></i>'.$value.'</a></div></div>';
+                        $html .= '<div class="col-6"><div>'.$LOCALE->get(ucfirst($key)).'</div><div><a class="link-primary" href="tel:'.$value.'"><i class="me-1 bi bi-telephone"></i>'.$value.'</a></div></div>';
                         break;
                     case 'tags':
                         $html .= '<div class="col-12"><div>'.$LOCALE->get(ucfirst($key)).'</div><div>';
