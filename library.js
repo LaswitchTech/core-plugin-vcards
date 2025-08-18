@@ -271,7 +271,7 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
         );
     }
 
-    upload(){
+    upload(callback = null){
 
         // Set Self
         const self = this;
@@ -342,6 +342,12 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                 data: {avatar: response.record.id},
                                                 success: function(response) {
 
+                                                    // Check if the callback is defined
+                                                    if(typeof self._properties.callback === 'function'){
+                                                        // Call the callback with the response
+                                                        self._properties.callback(response);
+                                                    }
+
                                                     // Close the modal
                                                     modal.hide();
                                                 }
@@ -384,7 +390,7 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
         );
     }
 
-    edit(){
+    edit(callback = null){
 
         // Set Self
         const self = this;
@@ -480,6 +486,12 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                                             type: 'POST',dataType: 'json',
                                                                             data: form.val(),
                                                                             success: function(response) {
+
+                                                                                // Check if the callback is defined
+                                                                                if(typeof self._properties.callback === 'function'){
+                                                                                    // Call the callback with the response
+                                                                                    self._properties.callback(response);
+                                                                                }
 
                                                                                 // Hide the modal
                                                                                 modal.hide();
