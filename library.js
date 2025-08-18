@@ -75,11 +75,181 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                 });
                                         }
 
-                                        // Add an event listener for the avatar button
-                                        component.body.find('button[data-type="avatar"][data-vcard="'+self._properties.data+'"]').click(function(){
+                                        // Create the vCard
+                                        component.body.vcard = $(document.createElement('div')).attr({
+                                            'class': 'vcard row m-0 g-0',
+                                        }).appendTo(component.body)
+
+                                        // Create the Avatar column
+                                        component.body.vcard.avatar = $(document.createElement('div')).attr({
+                                            'class': 'col-12 col-md-4 text-bg-gray-200 p-3 d-flex flex-row flex-lg-column justify-content-start justify-content-lg-center align-items-center',
+                                            'style': 'border-bottom-left-radius: var(--bs-modal-inner-border-radius);',
+                                        }).appendTo(component.body.vcard);
+
+                                        // Create the Avatar image
+                                        component.body.vcard.avatar.img = $(document.createElement('img')).attr({
+                                            'class': 'avatar rounded-circle rounded-circle border border-3 cursor-pointer',
+                                            'src': '/avatar?id='+response.record.id+'&size=256',
+                                        }).appendTo(component.body.vcard.avatar);
+
+                                        // Add an event listener for the avatar image
+                                        component.body.vcard.avatar.img.click(function(){
                                             modal.hide();
                                             self.upload();
                                         });
+
+                                        // Create the name column
+                                        component.body.vcard.avatar.names = $(document.createElement('div')).attr({
+                                            'class': 'd-flex flex-column align-items-start align-items-lg-center justify-content-center',
+                                        }).appendTo(component.body.vcard.avatar);
+                                        component.body.vcard.avatar.names.name = $(document.createElement('h3')).attr({
+                                            'class': 'fw-lighter text-start text-lg-center',
+                                        }).text(response.record.name).appendTo(component.body.vcard.avatar.names);
+                                        component.body.vcard.avatar.names.dba = $(document.createElement('h4')).attr({
+                                            'class': 'fw-lighter text-start text-lg-center text-muted',
+                                        }).text(response.record.dba ?? '' + response.record.title ?? '').appendTo(component.body.vcard.avatar.names);
+
+                                        // Create the Info column
+                                        component.body.vcard.info = $(document.createElement('div')).attr({
+                                            'class': 'col-12 col-md-8 px-2 pb-3',
+                                        }).appendTo(component.body.vcard);
+                                        component.body.vcard.info.row = $(document.createElement('div')).attr({
+                                            'class': 'row m-0 g-3',
+                                        }).appendTo(component.body.vcard.info);
+
+                                        // Create the Info rows
+                                        for(const [column, value] of Object.entries(response.record)){
+
+                                            // Skip empty values
+                                            if(!value || value === 'null' || value === '' || value === 'undefined' || (Array.isArray(value) && value.length === 0)){
+                                                continue;
+                                            }
+
+                                            // Create the columns
+                                            switch(column){
+                                                case 'address':
+                                                    if(typeof component.body.vcard.info.row.address === 'undefined'){
+                                                        const string = response.record.address + (response.record.city ? ', ' + response.record.city : '') + (response.record.state.name ? ', ' + response.record.state.name : '') + (response.record.zipcode ? ', ' + response.record.zipcode : '') + (response.record.country.name ? ', ' + response.record.country.name : '');
+                                                        component.body.vcard.info.row.address = $(document.createElement('div')).attr({
+                                                            'class': 'col-12',
+                                                        }).appendTo(component.body.vcard.info.row);
+                                                        component.body.vcard.info.row.address.header = $(document.createElement('h5')).attr({
+                                                            'class': 'fw-light text-muted text-capitalize',
+                                                        }).text(self._builder.Locale.get('address')).appendTo(component.body.vcard.info.row.address);
+                                                        component.body.vcard.info.row.address.body = $(document.createElement('p')).attr({
+                                                            'class': 'm-0',
+                                                        }).text(string).appendTo(component.body.vcard.info.row.address);
+                                                    }
+                                                    break;
+                                                case 'phone':
+                                                case 'mobile':
+                                                case 'tollfree':
+                                                case 'fax':
+                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                        'class': 'col-12 col-lg-6',
+                                                    }).appendTo(component.body.vcard.info.row);
+                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                        'class': 'fw-light text-muted text-capitalize',
+                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                        'class': 'm-0',
+                                                    }).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
+                                                        'href': 'tel:' + value,
+                                                        'class': 'text-decoration-none',
+                                                    }).text(value).appendTo(component.body.vcard.info.row[column].body);
+                                                    component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
+                                                        'class': 'bi bi-telephone me-1',
+                                                    }).prependTo(component.body.vcard.info.row[column].link);
+                                                    break;
+                                                case 'email':
+                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                        'class': 'col-12 col-lg-6',
+                                                    }).appendTo(component.body.vcard.info.row);
+                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                        'class': 'fw-light text-muted text-capitalize',
+                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                        'class': 'm-0',
+                                                    }).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
+                                                        'href': 'mailto:' + value,
+                                                        'class': 'text-decoration-none',
+                                                    }).text(value).appendTo(component.body.vcard.info.row[column].body);
+                                                    component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
+                                                        'class': 'bi bi-envelope me-1',
+                                                    }).prependTo(component.body.vcard.info.row[column].link);
+                                                    break;
+                                                case 'website':
+                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                        'class': 'col-12 col-lg-6',
+                                                    }).appendTo(component.body.vcard.info.row);
+                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                        'class': 'fw-light text-muted text-capitalize',
+                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                        'class': 'm-0',
+                                                    }).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
+                                                        'href': value,
+                                                        'class': 'text-decoration-none',
+                                                    }).text(value).appendTo(component.body.vcard.info.row[column].body);
+                                                    component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
+                                                        'class': 'bi bi-globe-americas me-1',
+                                                    }).prependTo(component.body.vcard.info.row[column].link);
+                                                    break;
+                                                case 'locale':
+                                                case 'businessNumber':
+                                                case 'taxExtension':
+                                                case 'importerExtension':
+                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                        'class': 'col-12 col-lg-6',
+                                                    }).appendTo(component.body.vcard.info.row);
+                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                        'class': 'fw-light text-muted text-capitalize',
+                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                        'class': 'm-0',
+                                                    }).text(value).appendTo(component.body.vcard.info.row[column]);
+                                                    break;
+                                                case 'role':
+                                                case 'tags':
+                                                case 'industries':
+
+                                                    // Create the column
+                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                        'class': 'col-12',
+                                                    }).appendTo(component.body.vcard.info.row);
+                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                        'class': 'fw-light text-muted text-capitalize',
+                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                        'class': 'm-0',
+                                                    }).appendTo(component.body.vcard.info.row[column]);
+
+                                                    // Determine the icon and color based on the column
+                                                    let icon = 'exclamation-triangle';
+                                                    let color = 'danger';
+                                                    if(column === 'role'){
+                                                        icon = 'person-badge';
+                                                        color = 'light';
+                                                    } else if(column === 'tags'){
+                                                        icon = 'tag';
+                                                        color = 'warning';
+                                                    } else if(column === 'industries'){
+                                                        icon = 'crosshair';
+                                                        color = 'primary';
+                                                    }
+
+                                                    // Append the values as badges
+                                                    for(const [key, unique] of Object.entries(value)){
+                                                        $(document.createElement('span')).attr({
+                                                            'class': 'badge me-1 text-capitalize text-bg-'+color,
+                                                        }).html('<i class="me-1 bi bi-'+icon+'"></i>'+unique).appendTo(component.body.vcard.info.row[column].body);
+                                                    }
+                                                    break;
+                                            }
+                                        }
 
                                         // Resolve the promise
                                         resolve();
@@ -91,6 +261,9 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                 },
             },
             function(modal,component){
+
+                // Styling
+                component.body.addClass('p-0');
 
                 // Show the modal
                 modal.show();
