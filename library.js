@@ -11,10 +11,6 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
         };
     }
 
-    _insert(){
-        return self;
-    }
-
     _create(){
 
         // Set Self
@@ -60,14 +56,12 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                     url: '/api/vcards/fetch?id='+self._properties.data,
                                     type: 'GET',dataType: 'json',
                                     success: function(response) {
+                                        console.log(response);
 
                                         // Insert the name in the title
                                         if(response.record.name){
                                             component.header.title.label.append(': ' + response.record.name);
                                         }
-
-                                        // Insert the body content
-                                        component.body.html(response.preview);
 
                                         // Check if the user is allowed to edit the vCard
                                         if(response.edit){
