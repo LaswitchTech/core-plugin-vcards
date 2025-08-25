@@ -164,7 +164,7 @@
         "Type": "varchar(255)",
         "Null": "YES",
         "Key": "",
-        "Default": "0001",
+        "Default": null,
         "Extra": ""
     },
     "21": {
@@ -172,7 +172,7 @@
         "Type": "varchar(255)",
         "Null": "YES",
         "Key": "",
-        "Default": "0001",
+        "Default": null,
         "Extra": ""
     },
     "22": {
