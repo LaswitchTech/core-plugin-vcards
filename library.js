@@ -1,3 +1,42 @@
+builder.add('renderers', 'vcard.tags', function(value, data){
+    if(typeof data.vcard !== 'undefined'){
+
+        // If no value
+        if(value == null || value == '' || (Array.isArray(value) && value.length === 0)){
+            return '<div></div>';
+        }
+
+        // Create element
+        var element = $(document.createElement('div')).addClass('d-flex flex-wrap flex-row');
+        for(const [key, unique] of Object.entries(value)){
+            $(document.createElement('span')).addClass('badge text-bg-warning m-1').html('<i class="me-1 bi bi-tag"></i>'+unique).css('font-size','0.8rem').appendTo(element);
+        }
+
+        // Return element
+        return element.prop('outerHTML');
+    }
+    return '<div>' + value + '</div>';
+})
+builder.add('renderers', 'vcard.industries', function(value, data){
+    if(typeof data.vcard !== 'undefined'){
+
+        // If no value
+        if(value == null || value == '' || (Array.isArray(value) && value.length === 0)){
+            return '<div></div>';
+        }
+
+        // Create element
+        var element = $(document.createElement('div')).addClass('d-flex flex-wrap flex-row');
+        for(const [key, unique] of Object.entries(value)){
+            $(document.createElement('span')).addClass('badge text-bg-primary m-1').html('<i class="me-1 bi bi-crosshair"></i>'+unique).css('font-size','0.8rem').appendTo(element);
+        }
+
+        // Return element
+        return element.prop('outerHTML');
+    }
+    return '<div>' + value + '</div>';
+})
+
 builder.add('widgets','vcard', class extends builder.ComponentClass {
 
     _init(){
