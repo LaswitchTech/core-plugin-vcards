@@ -64,14 +64,6 @@
         "Extra": ""
     },
     "8": {
-        "Field": "role",
-        "Type": "json",
-        "Null": "YES",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
-    },
-    "9": {
         "Field": "address",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -79,7 +71,7 @@
         "Default": null,
         "Extra": ""
     },
-    "10": {
+    "9": {
         "Field": "city",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -87,7 +79,7 @@
         "Default": null,
         "Extra": ""
     },
-    "11": {
+    "10": {
         "Field": "state",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -95,7 +87,7 @@
         "Default": null,
         "Extra": ""
     },
-    "12": {
+    "11": {
         "Field": "country",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -103,7 +95,7 @@
         "Default": null,
         "Extra": ""
     },
-    "13": {
+    "12": {
         "Field": "zipcode",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -111,7 +103,7 @@
         "Default": null,
         "Extra": ""
     },
-    "14": {
+    "13": {
         "Field": "email",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -119,7 +111,7 @@
         "Default": null,
         "Extra": ""
     },
-    "15": {
+    "14": {
         "Field": "tollfree",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -127,7 +119,7 @@
         "Default": null,
         "Extra": ""
     },
-    "16": {
+    "15": {
         "Field": "phone",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -135,7 +127,7 @@
         "Default": null,
         "Extra": ""
     },
-    "17": {
+    "16": {
         "Field": "mobile",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -143,7 +135,7 @@
         "Default": null,
         "Extra": ""
     },
-    "18": {
+    "17": {
         "Field": "fax",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -151,7 +143,7 @@
         "Default": null,
         "Extra": ""
     },
-    "19": {
+    "18": {
         "Field": "website",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -159,31 +151,7 @@
         "Default": null,
         "Extra": ""
     },
-    "20": {
-        "Field": "locale",
-        "Type": "varchar(255)",
-        "Null": "YES",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
-    },
-    "21": {
-        "Field": "tags",
-        "Type": "json",
-        "Null": "YES",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
-    },
-    "22": {
-        "Field": "industries",
-        "Type": "json",
-        "Null": "YES",
-        "Key": "",
-        "Default": null,
-        "Extra": ""
-    },
-    "23": {
+    "19": {
         "Field": "businessNumber",
         "Type": "varchar(255)",
         "Null": "YES",
@@ -191,20 +159,52 @@
         "Default": null,
         "Extra": ""
     },
-    "24": {
+    "20": {
         "Field": "taxExtension",
         "Type": "varchar(255)",
         "Null": "YES",
         "Key": "",
-        "Default": "0001",
+        "Default": null,
         "Extra": ""
     },
-    "25": {
+    "21": {
         "Field": "importerExtension",
         "Type": "varchar(255)",
         "Null": "YES",
         "Key": "",
-        "Default": "0001",
+        "Default": null,
+        "Extra": ""
+    },
+    "22": {
+        "Field": "locale",
+        "Type": "varchar(255)",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "23": {
+        "Field": "role",
+        "Type": "json",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "24": {
+        "Field": "tags",
+        "Type": "json",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
+        "Extra": ""
+    },
+    "25": {
+        "Field": "industries",
+        "Type": "json",
+        "Null": "YES",
+        "Key": "",
+        "Default": null,
         "Extra": ""
     },
     "26": {

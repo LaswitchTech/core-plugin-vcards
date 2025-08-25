@@ -132,4 +132,78 @@ class VcardsModel extends BaseModel {
         // Return the record or an empty array if not found
         return $records[array_key_first($records)] ?? [];
     }
+
+    /**
+     * Retrieve a single record by email
+     *
+     * @param string $email
+     * @return array
+     */
+    public function fetchByEmail(string $email): array
+    {
+        // Create the Query
+        $Query = $this->Database->query()
+            ->table($this->table)
+            ->select('*')
+            ->join('owner', 'users', 'username')
+            ->join('avatar', 'files', 'id')
+            ->join('country', 'countries', 'code')
+            ->join('state', 'states', 'code')
+            ->join('organization', 'organizations', 'id')
+            ->filter()
+            ->where('id', 9999, '<>')
+            ->filter()
+            ->where('email', $email)
+            ->limit(1);
+
+        // Retrieve the record
+        $records = $Query->fetch();
+
+        // Loop through the records to process them
+        foreach($records as $key => $record){
+
+            // Overwrite the record with the processed one
+            $records[$key] = $this->process($record);
+        }
+
+        // Return the record or an empty array if not found
+        return $records[array_key_first($records)] ?? [];
+    }
+
+    /**
+     * Retrieve a single record by website
+     *
+     * @param string $website
+     * @return array
+     */
+    public function fetchByWebsite(string $website): array
+    {
+        // Create the Query
+        $Query = $this->Database->query()
+            ->table($this->table)
+            ->select('*')
+            ->join('owner', 'users', 'username')
+            ->join('avatar', 'files', 'id')
+            ->join('country', 'countries', 'code')
+            ->join('state', 'states', 'code')
+            ->join('organization', 'organizations', 'id')
+            ->filter()
+            ->where('id', 9999, '<>')
+            ->filter()
+            ->where('website', $website)
+            ->limit(1);
+
+        // Retrieve the record
+        $records = $Query->fetch();
+
+        // Loop through the records to process them
+        foreach($records as $key => $record){
+
+            // Overwrite the record with the processed one
+            $records[$key] = $this->process($record);
+        }
+
+        // Return the record or an empty array if not found
+        return $records[array_key_first($records)] ?? [];
+    }
 }
