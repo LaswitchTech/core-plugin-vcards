@@ -349,17 +349,14 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                 // Show the modal spinner
                                 modal.spinner(true);
 
-                                // Get the values
-                                var values = form.val();
-
                                 // Run the file promise
-                                values.file.then(fileData => {
+                                form.val().file.then(fileData => {
 
                                     // Retrieve the first file
                                     var file = fileData[0];
 
                                     // Add some properties
-                                    file.checksum = builder.Helper.md5(file.content.split(',')[1]);
+                                    file.checksum = self._builder.Helper.md5(file.content.split(',')[1]);
                                     file.path = 'avatars';
                                     file.isPublic = 1;
                                     file.targetTable = 'vcards';
