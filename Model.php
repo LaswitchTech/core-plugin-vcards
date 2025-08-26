@@ -28,12 +28,10 @@ class VcardsModel extends BaseModel {
         // Call the parent constructor
         $record = parent::process($record);
 
-        // Check if the record has role
-        if(array_key_exists('role', $record) && !empty($record['role']) && !is_array($record['role'])){
-
-            // Process the roles
-            $record['role'] = json_decode($record['role'] ?? "[]", true);
-        }
+        // Process the JSON fields
+        $record['role'] = json_decode($record['role'] ?? "[]", true);
+        $record['tags'] = json_decode($record['tags'] ?? "[]", true);
+        $record['industries'] = json_decode($record['industries'] ?? "[]", true);
 
         // Return the processed record
         return $record;
