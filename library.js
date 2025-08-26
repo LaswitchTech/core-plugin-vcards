@@ -527,9 +527,8 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                                             success: function(response) {
 
                                                                                 // Check if the callback is defined
-                                                                                if(typeof self._properties.callback === 'function'){
-                                                                                    // Call the callback with the response
-                                                                                    self._properties.callback(response);
+                                                                                if(typeof callback === 'function'){
+                                                                                    callback(response);
                                                                                 }
 
                                                                                 // Hide the modal
