@@ -29,9 +29,15 @@ class VcardsModel extends BaseModel {
         $record = parent::process($record);
 
         // Process the JSON fields
-        $record['role'] = json_decode($record['role'] ?? "[]", true);
-        $record['tags'] = json_decode($record['tags'] ?? "[]", true);
-        $record['industries'] = json_decode($record['industries'] ?? "[]", true);
+        if(!is_array($record['role'])){
+            $record['role'] = json_decode($record['role'] ?? "[]", true);
+        }
+        if(!is_array($record['tags'])){
+            $record['tags'] = json_decode($record['tags'] ?? "[]", true);
+        }
+        if(!is_array($record['industries'])){
+            $record['industries'] = json_decode($record['industries'] ?? "[]", true);
+        }
 
         // Return the processed record
         return $record;
