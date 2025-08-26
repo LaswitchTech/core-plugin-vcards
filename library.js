@@ -62,13 +62,16 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
         });
         this._component.id = this._component.attr('id');
 
+        // Check if a component class is set
+        if(this._properties.class.component){
+            this._component.addClass(this._properties.class.component);
+        }
+
         // Open the appropriate modal based on mode
-        if(this._properties.mode === 'view'){
-            this.view();
-        } else if(this._properties.mode === 'edit'){
-            this.edit();
-        } else if(this._properties.mode === 'upload'){
-            this.upload();
+        switch(this._properties.mode){
+            case 'view': this.view(); break;
+            case 'edit': this.edit(); break;
+            case 'upload': this.upload(); break;
         }
     }
 
@@ -524,9 +527,8 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                                             success: function(response) {
 
                                                                                 // Check if the callback is defined
-                                                                                if(typeof self._properties.callback === 'function'){
-                                                                                    // Call the callback with the response
-                                                                                    self._properties.callback(response);
+                                                                                if(typeof callback === 'function'){
+                                                                                    callback(response);
                                                                                 }
 
                                                                                 // Hide the modal
