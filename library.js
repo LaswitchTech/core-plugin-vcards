@@ -62,6 +62,11 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
         });
         this._component.id = this._component.attr('id');
 
+        // Check if a component class is set
+        if(this._properties.class.component){
+            this._component.addClass(this._properties.class.component);
+        }
+
         // Open the appropriate modal based on mode
         if(this._properties.mode === 'view'){
             this.view();
