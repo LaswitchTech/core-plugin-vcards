@@ -68,12 +68,10 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
         }
 
         // Open the appropriate modal based on mode
-        if(this._properties.mode === 'view'){
-            this.view();
-        } else if(this._properties.mode === 'edit'){
-            this.edit();
-        } else if(this._properties.mode === 'upload'){
-            this.upload();
+        switch(this._properties.mode){
+            case 'view': this.view(); break;
+            case 'edit': this.edit(); break;
+            case 'upload': this.upload(); break;
         }
     }
 
