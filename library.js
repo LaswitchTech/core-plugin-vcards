@@ -1,4 +1,4 @@
-builder.add('renderers', 'vcard.tags', function(value, data){
+builder.add('renderers', 'vcard.tags', function(value, data, type){
     if(typeof data.vcard !== 'undefined'){
 
         // If no value
@@ -17,7 +17,7 @@ builder.add('renderers', 'vcard.tags', function(value, data){
     }
     return '<div>' + value + '</div>';
 })
-builder.add('renderers', 'vcard.industries', function(value, data){
+builder.add('renderers', 'vcard.industries', function(value, data, type){
     if(typeof data.vcard !== 'undefined'){
 
         // If no value
