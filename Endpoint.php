@@ -138,7 +138,7 @@ class VcardsEndpoint extends BaseEndpoint {
             }
 
             // Check if industries is set
-            if($this->Helper->Core->isInstalled('industries') && array_key_exists('industries', $parameters) && !is_array($parameters['industries']) && !empty($parameters['industries'])){
+            if($this->Helper->Core->isInstalled('industries') && array_key_exists('industries', $parameters) && is_array($parameters['industries']) && !empty($parameters['industries'])){
 
                 // Loop through the industries
                 foreach($parameters['industries'] ?? [] as $key => $industry){
@@ -213,7 +213,7 @@ class VcardsEndpoint extends BaseEndpoint {
             }
 
             // Check if industries is set
-            if($this->Helper->Core->isInstalled('industries') && array_key_exists('industries', $parameters) && !is_array($parameters['industries']) && !empty($parameters['industries'])){
+            if($this->Helper->Core->isInstalled('industries') && array_key_exists('industries', $parameters) && is_array($parameters['industries']) && !empty($parameters['industries'])){
 
                 // Loop through the industries
                 foreach($parameters['industries'] ?? [] as $key => $industry){
