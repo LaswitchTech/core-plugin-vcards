@@ -820,18 +820,20 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                                     }
                                                                 );
                                                                 // website
-                                                                form.add(
-                                                                    'text',
-                                                                    {
-                                                                        name: 'website',
-                                                                        label: self._builder.Locale.get('Website'),
-                                                                        placeholder: self._builder.Locale.get('Enter website'),
-                                                                        value: response.record.website,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6',
-                                                                        },
-                                                                    }
-                                                                );
+                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                                    form.add(
+                                                                        'text',
+                                                                        {
+                                                                            name: 'website',
+                                                                            label: self._builder.Locale.get('Website'),
+                                                                            placeholder: self._builder.Locale.get('Enter website'),
+                                                                            value: response.record.website,
+                                                                            class: {
+                                                                                component: 'col-12 col-md-6',
+                                                                            },
+                                                                        }
+                                                                    );
+                                                                }
                                                                 // industries
                                                                 if(['Organization','Lead','Client'].includes(response.record.category)){
                                                                     form.add(
