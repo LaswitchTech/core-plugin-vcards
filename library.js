@@ -459,6 +459,10 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                 $.ajax({
                                     url: '/api/library/fetch',
                                     type: 'GET',dataType: 'json',
+                                    error: function(xhr, status, error) {
+                                        console.error('Error fetching library:', error);
+                                        reject(error);
+                                    },
                                     success: function(library) {
 
                                         // Retrieve the vCard's roles
@@ -470,6 +474,10 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                 conditions: [
                                                     {key: 'targetTable', operator: '=', value: 'vcards.role'},
                                                 ]
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error('Error fetching roles:', error);
+                                                reject(error);
                                             },
                                             success: function(response) {
 
@@ -499,20 +507,6 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                                                     component: 'row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3',
                                                                 },
                                                                 callback: {
-                                                                    val: function(values){
-
-                                                                        // Check if the industries array is empty
-                                                                        if(typeof values.tags !== "undefined" && values.tags.length === 0){
-                                                                            values.tags = '[]';
-                                                                        }
-
-                                                                        // Check if the industries array is empty
-                                                                        if(typeof values.industries !== "undefined" && values.industries.length === 0){
-                                                                            values.industries = '[]';
-                                                                        }
-
-                                                                        return values;
-                                                                    },
                                                                     submit: function(form){
 
                                                                         // Show the modal spinner
