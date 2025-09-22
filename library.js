@@ -94,208 +94,206 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                     load: function(component, modal){
                         return new Promise((resolve, reject) => {
                             try {
-                                $.ajax({
-                                    url: '/api/vcards/fetch?id='+self._properties.data,
-                                    type: 'GET',dataType: 'json',
-                                    success: function(response) {
-                                        console.log(response);
+                                API.endpoint('/vcards/fetch?id='+self._properties.data).execute(function(response){
 
-                                        // Insert the name in the title
-                                        if(response.record.name){
-                                            component.header.title.label.append(': ' + response.record.name);
+                                    // Insert the name in the title
+                                    if(response.record.name){
+                                        component.header.title.label.append(': ' + response.record.name);
+                                    }
+
+                                    // Check if the user is allowed to edit the vCard
+                                    if(response.edit){
+                                        $(document.createElement('button'))
+                                            .addClass('btn btn-lg btn-link')
+                                            .html('<i class="bi bi-pencil"></i>')
+                                            .prependTo(component.header.tools)
+                                            .click(function(){
+                                                modal.hide();
+                                                self.edit();
+                                            });
+                                    }
+
+                                    // Create the vCard
+                                    component.body.vcard = $(document.createElement('div')).attr({
+                                        'class': 'vcard row m-0 g-0',
+                                    }).appendTo(component.body)
+
+                                    // Create the Avatar column
+                                    component.body.vcard.avatar = $(document.createElement('div')).attr({
+                                        'class': 'col-12 col-md-4 text-bg-gray-200 p-3 d-flex flex-row flex-lg-column justify-content-start justify-content-lg-center align-items-center',
+                                        'style': 'border-bottom-left-radius: var(--bs-modal-inner-border-radius);',
+                                    }).appendTo(component.body.vcard);
+
+                                    // Create the Avatar image
+                                    component.body.vcard.avatar.img = $(document.createElement('img')).attr({
+                                        'class': 'avatar rounded-circle rounded-circle border border-3 cursor-pointer',
+                                        'src': '/avatar?id='+response.record.id+'&size=256',
+                                    }).appendTo(component.body.vcard.avatar);
+
+                                    // Add an event listener for the avatar image
+                                    component.body.vcard.avatar.img.click(function(){
+                                        modal.hide();
+                                        self.upload();
+                                    });
+
+                                    // Create the name column
+                                    component.body.vcard.avatar.names = $(document.createElement('div')).attr({
+                                        'class': 'd-flex flex-column align-items-start align-items-lg-center justify-content-center',
+                                    }).appendTo(component.body.vcard.avatar);
+                                    component.body.vcard.avatar.names.name = $(document.createElement('h3')).attr({
+                                        'class': 'fw-lighter text-start text-lg-center',
+                                    }).text(response.record.name).appendTo(component.body.vcard.avatar.names);
+                                    component.body.vcard.avatar.names.dba = $(document.createElement('h4')).attr({
+                                        'class': 'fw-lighter text-start text-lg-center text-muted',
+                                    }).text(response.record.dba ?? '' + response.record.title ?? '').appendTo(component.body.vcard.avatar.names);
+
+                                    // Create the Info column
+                                    component.body.vcard.info = $(document.createElement('div')).attr({
+                                        'class': 'col-12 col-md-8 px-2 pb-3',
+                                    }).appendTo(component.body.vcard);
+                                    component.body.vcard.info.row = $(document.createElement('div')).attr({
+                                        'class': 'row m-0 g-3',
+                                    }).appendTo(component.body.vcard.info);
+
+                                    // Create the Info rows
+                                    for(const [column, value] of Object.entries(response.record)){
+
+                                        // Skip empty values
+                                        if(!value || value === 'null' || value === '' || value === 'undefined' || (Array.isArray(value) && value.length === 0)){
+                                            continue;
                                         }
 
-                                        // Check if the user is allowed to edit the vCard
-                                        if(response.edit){
-                                            $(document.createElement('button'))
-                                                .addClass('btn btn-lg btn-link')
-                                                .html('<i class="bi bi-pencil"></i>')
-                                                .prependTo(component.header.tools)
-                                                .click(function(){
-                                                    modal.hide();
-                                                    self.edit();
-                                                });
-                                        }
-
-                                        // Create the vCard
-                                        component.body.vcard = $(document.createElement('div')).attr({
-                                            'class': 'vcard row m-0 g-0',
-                                        }).appendTo(component.body)
-
-                                        // Create the Avatar column
-                                        component.body.vcard.avatar = $(document.createElement('div')).attr({
-                                            'class': 'col-12 col-md-4 text-bg-gray-200 p-3 d-flex flex-row flex-lg-column justify-content-start justify-content-lg-center align-items-center',
-                                            'style': 'border-bottom-left-radius: var(--bs-modal-inner-border-radius);',
-                                        }).appendTo(component.body.vcard);
-
-                                        // Create the Avatar image
-                                        component.body.vcard.avatar.img = $(document.createElement('img')).attr({
-                                            'class': 'avatar rounded-circle rounded-circle border border-3 cursor-pointer',
-                                            'src': '/avatar?id='+response.record.id+'&size=256',
-                                        }).appendTo(component.body.vcard.avatar);
-
-                                        // Add an event listener for the avatar image
-                                        component.body.vcard.avatar.img.click(function(){
-                                            modal.hide();
-                                            self.upload();
-                                        });
-
-                                        // Create the name column
-                                        component.body.vcard.avatar.names = $(document.createElement('div')).attr({
-                                            'class': 'd-flex flex-column align-items-start align-items-lg-center justify-content-center',
-                                        }).appendTo(component.body.vcard.avatar);
-                                        component.body.vcard.avatar.names.name = $(document.createElement('h3')).attr({
-                                            'class': 'fw-lighter text-start text-lg-center',
-                                        }).text(response.record.name).appendTo(component.body.vcard.avatar.names);
-                                        component.body.vcard.avatar.names.dba = $(document.createElement('h4')).attr({
-                                            'class': 'fw-lighter text-start text-lg-center text-muted',
-                                        }).text(response.record.dba ?? '' + response.record.title ?? '').appendTo(component.body.vcard.avatar.names);
-
-                                        // Create the Info column
-                                        component.body.vcard.info = $(document.createElement('div')).attr({
-                                            'class': 'col-12 col-md-8 px-2 pb-3',
-                                        }).appendTo(component.body.vcard);
-                                        component.body.vcard.info.row = $(document.createElement('div')).attr({
-                                            'class': 'row m-0 g-3',
-                                        }).appendTo(component.body.vcard.info);
-
-                                        // Create the Info rows
-                                        for(const [column, value] of Object.entries(response.record)){
-
-                                            // Skip empty values
-                                            if(!value || value === 'null' || value === '' || value === 'undefined' || (Array.isArray(value) && value.length === 0)){
-                                                continue;
-                                            }
-
-                                            // Create the columns
-                                            switch(column){
-                                                case 'address':
-                                                    if(typeof component.body.vcard.info.row.address === 'undefined'){
-                                                        const string = response.record.address + (response.record.city ? ', ' + response.record.city : '') + (response.record.state.name ? ', ' + response.record.state.name : '') + (response.record.zipcode ? ', ' + response.record.zipcode : '') + (response.record.country.name ? ', ' + response.record.country.name : '');
-                                                        component.body.vcard.info.row.address = $(document.createElement('div')).attr({
-                                                            'class': 'col-12',
-                                                        }).appendTo(component.body.vcard.info.row);
-                                                        component.body.vcard.info.row.address.header = $(document.createElement('h5')).attr({
-                                                            'class': 'fw-light text-muted text-capitalize',
-                                                        }).text(self._builder.Locale.get('address')).appendTo(component.body.vcard.info.row.address);
-                                                        component.body.vcard.info.row.address.body = $(document.createElement('p')).attr({
-                                                            'class': 'm-0',
-                                                        }).text(string).appendTo(component.body.vcard.info.row.address);
-                                                    }
-                                                    break;
-                                                case 'phone':
-                                                case 'mobile':
-                                                case 'tollfree':
-                                                case 'fax':
-                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
-                                                        'class': 'col-12 col-lg-6',
-                                                    }).appendTo(component.body.vcard.info.row);
-                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
-                                                        'class': 'fw-light text-muted text-capitalize',
-                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
-                                                        'class': 'm-0',
-                                                    }).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
-                                                        'href': 'tel:' + value,
-                                                        'class': 'text-decoration-none',
-                                                    }).text(value).appendTo(component.body.vcard.info.row[column].body);
-                                                    component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
-                                                        'class': 'bi bi-telephone me-1',
-                                                    }).prependTo(component.body.vcard.info.row[column].link);
-                                                    break;
-                                                case 'email':
-                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
-                                                        'class': 'col-12 col-lg-6',
-                                                    }).appendTo(component.body.vcard.info.row);
-                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
-                                                        'class': 'fw-light text-muted text-capitalize',
-                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
-                                                        'class': 'm-0',
-                                                    }).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
-                                                        'href': 'mailto:' + value,
-                                                        'class': 'text-decoration-none',
-                                                    }).text(value).appendTo(component.body.vcard.info.row[column].body);
-                                                    component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
-                                                        'class': 'bi bi-envelope me-1',
-                                                    }).prependTo(component.body.vcard.info.row[column].link);
-                                                    break;
-                                                case 'website':
-                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
-                                                        'class': 'col-12 col-lg-6',
-                                                    }).appendTo(component.body.vcard.info.row);
-                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
-                                                        'class': 'fw-light text-muted text-capitalize',
-                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
-                                                        'class': 'm-0',
-                                                    }).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
-                                                        'href': value,
-                                                        'class': 'text-decoration-none',
-                                                    }).text(value).appendTo(component.body.vcard.info.row[column].body);
-                                                    component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
-                                                        'class': 'bi bi-globe-americas me-1',
-                                                    }).prependTo(component.body.vcard.info.row[column].link);
-                                                    break;
-                                                case 'locale':
-                                                case 'businessNumber':
-                                                case 'taxExtension':
-                                                case 'importerExtension':
-                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
-                                                        'class': 'col-12 col-lg-6',
-                                                    }).appendTo(component.body.vcard.info.row);
-                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
-                                                        'class': 'fw-light text-muted text-capitalize',
-                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
-                                                        'class': 'm-0',
-                                                    }).text(value).appendTo(component.body.vcard.info.row[column]);
-                                                    break;
-                                                case 'role':
-                                                case 'tags':
-                                                case 'industries':
-
-                                                    // Create the column
-                                                    component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                        // Create the columns
+                                        switch(column){
+                                            case 'address':
+                                                if(typeof component.body.vcard.info.row.address === 'undefined'){
+                                                    const string = response.record.address + (response.record.city ? ', ' + response.record.city : '') + (response.record.state.name ? ', ' + response.record.state.name : '') + (response.record.zipcode ? ', ' + response.record.zipcode : '') + (response.record.country.name ? ', ' + response.record.country.name : '');
+                                                    component.body.vcard.info.row.address = $(document.createElement('div')).attr({
                                                         'class': 'col-12',
                                                     }).appendTo(component.body.vcard.info.row);
-                                                    component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                    component.body.vcard.info.row.address.header = $(document.createElement('h5')).attr({
                                                         'class': 'fw-light text-muted text-capitalize',
-                                                    }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
-                                                    component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                    }).text(self._builder.Locale.get('address')).appendTo(component.body.vcard.info.row.address);
+                                                    component.body.vcard.info.row.address.body = $(document.createElement('p')).attr({
                                                         'class': 'm-0',
-                                                    }).appendTo(component.body.vcard.info.row[column]);
+                                                    }).text(string).appendTo(component.body.vcard.info.row.address);
+                                                }
+                                                break;
+                                            case 'phone':
+                                            case 'mobile':
+                                            case 'tollfree':
+                                            case 'fax':
+                                                component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                    'class': 'col-12 col-lg-6',
+                                                }).appendTo(component.body.vcard.info.row);
+                                                component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                    'class': 'fw-light text-muted text-capitalize',
+                                                }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                    'class': 'm-0',
+                                                }).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
+                                                    'href': 'tel:' + value,
+                                                    'class': 'text-decoration-none',
+                                                }).text(value).appendTo(component.body.vcard.info.row[column].body);
+                                                component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
+                                                    'class': 'bi bi-telephone me-1',
+                                                }).prependTo(component.body.vcard.info.row[column].link);
+                                                break;
+                                            case 'email':
+                                                component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                    'class': 'col-12 col-lg-6',
+                                                }).appendTo(component.body.vcard.info.row);
+                                                component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                    'class': 'fw-light text-muted text-capitalize',
+                                                }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                    'class': 'm-0',
+                                                }).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
+                                                    'href': 'mailto:' + value,
+                                                    'class': 'text-decoration-none',
+                                                }).text(value).appendTo(component.body.vcard.info.row[column].body);
+                                                component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
+                                                    'class': 'bi bi-envelope me-1',
+                                                }).prependTo(component.body.vcard.info.row[column].link);
+                                                break;
+                                            case 'website':
+                                                component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                    'class': 'col-12 col-lg-6',
+                                                }).appendTo(component.body.vcard.info.row);
+                                                component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                    'class': 'fw-light text-muted text-capitalize',
+                                                }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                    'class': 'm-0',
+                                                }).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].link = $(document.createElement('a')).attr({
+                                                    'href': value,
+                                                    'class': 'text-decoration-none',
+                                                }).text(value).appendTo(component.body.vcard.info.row[column].body);
+                                                component.body.vcard.info.row[column].link.i = $(document.createElement('i')).attr({
+                                                    'class': 'bi bi-globe-americas me-1',
+                                                }).prependTo(component.body.vcard.info.row[column].link);
+                                                break;
+                                            case 'locale':
+                                            case 'businessNumber':
+                                            case 'taxExtension':
+                                            case 'importerExtension':
+                                                component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                    'class': 'col-12 col-lg-6',
+                                                }).appendTo(component.body.vcard.info.row);
+                                                component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                    'class': 'fw-light text-muted text-capitalize',
+                                                }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                    'class': 'm-0',
+                                                }).text(value).appendTo(component.body.vcard.info.row[column]);
+                                                break;
+                                            case 'role':
+                                            case 'tags':
+                                            case 'industries':
 
-                                                    // Determine the icon and color based on the column
-                                                    let icon = 'exclamation-triangle';
-                                                    let color = 'danger';
-                                                    if(column === 'role'){
-                                                        icon = 'person-badge';
-                                                        color = 'light';
-                                                    } else if(column === 'tags'){
-                                                        icon = 'tag';
-                                                        color = 'warning';
-                                                    } else if(column === 'industries'){
-                                                        icon = 'crosshair';
-                                                        color = 'primary';
-                                                    }
+                                                // Create the column
+                                                component.body.vcard.info.row[column] = $(document.createElement('div')).attr({
+                                                    'class': 'col-12',
+                                                }).appendTo(component.body.vcard.info.row);
+                                                component.body.vcard.info.row[column].header = $(document.createElement('h5')).attr({
+                                                    'class': 'fw-light text-muted text-capitalize',
+                                                }).text(self._builder.Locale.get(column)).appendTo(component.body.vcard.info.row[column]);
+                                                component.body.vcard.info.row[column].body = $(document.createElement('p')).attr({
+                                                    'class': 'm-0',
+                                                }).appendTo(component.body.vcard.info.row[column]);
 
-                                                    // Append the values as badges
-                                                    for(const [key, unique] of Object.entries(value)){
-                                                        $(document.createElement('span')).attr({
-                                                            'class': 'badge me-1 text-capitalize text-bg-'+color,
-                                                        }).html('<i class="me-1 bi bi-'+icon+'"></i>'+unique).appendTo(component.body.vcard.info.row[column].body);
-                                                    }
-                                                    break;
-                                            }
+                                                // Determine the icon and color based on the column
+                                                let icon = 'exclamation-triangle';
+                                                let color = 'danger';
+                                                if(column === 'role'){
+                                                    icon = 'person-badge';
+                                                    color = 'light';
+                                                } else if(column === 'tags'){
+                                                    icon = 'tag';
+                                                    color = 'warning';
+                                                } else if(column === 'industries'){
+                                                    icon = 'crosshair';
+                                                    color = 'primary';
+                                                }
+
+                                                // Append the values as badges
+                                                for(const [key, unique] of Object.entries(value)){
+                                                    $(document.createElement('span')).attr({
+                                                        'class': 'badge me-1 text-capitalize text-bg-'+color,
+                                                    }).html('<i class="me-1 bi bi-'+icon+'"></i>'+unique).appendTo(component.body.vcard.info.row[column].body);
+                                                }
+                                                break;
                                         }
-
-                                        // Resolve the promise
-                                        resolve();
                                     }
+
+                                    // Resolve the promise
+                                    resolve();
+                                },function(xhr, status, error){
+                                    modal.hide();
+                                    reject(error);
                                 });
                             } catch(e) { reject(e); }
                         });
@@ -366,32 +364,24 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                     file.targetId = self._properties.data;
 
                                     // AJAX Request
-                                    $.ajax({
-                                        url: '/api/files/upload',
-                                        headers: {'X-CSRF-Authorization': CSRF_KEY},
-                                        type: 'POST',dataType: 'json',
-                                        data: file,
-                                        success: function(response) {
+                                    API.endpoint('/files/upload').data(file).execute(function(response){
 
-                                            // AJAX Request
-                                            $.ajax({
-                                                url: '/api/vcards/update?id='+self._properties.data,
-                                                headers: {'X-CSRF-Authorization': CSRF_KEY},
-                                                type: 'POST',dataType: 'json',
-                                                data: {avatar: response.record.id},
-                                                success: function(response) {
+                                        // AJAX Request
+                                        API.endpoint('/vcards/update?id='+self._properties.data).data({avatar: response.record.id}).execute(function(response){
 
-                                                    // Check if the callback is defined
-                                                    if(typeof self._properties.callback === 'function'){
-                                                        // Call the callback with the response
-                                                        self._properties.callback(response);
-                                                    }
+                                            // Check if the callback is defined
+                                            if(typeof self._properties.callback === 'function'){
+                                                // Call the callback with the response
+                                                self._properties.callback(response);
+                                            }
 
-                                                    // Close the modal
-                                                    modal.hide();
-                                                }
-                                            });
-                                        }
+                                            // Close the modal
+                                            modal.hide();
+                                        },function(xhr, status, error){
+                                            modal.hide();
+                                        });
+                                    },function(xhr, status, error){
+                                        modal.hide();
                                     });
                                 }).catch(error => {
                                     console.error('Error reading files:', error);
@@ -456,426 +446,409 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                 const parent = component.dialog;
 
                                 // Retrieve the libraries
-                                $.ajax({
-                                    url: '/api/library/fetch',
-                                    type: 'GET',dataType: 'json',
-                                    error: function(xhr, status, error) {
-                                        console.error('Error fetching library:', error);
-                                        reject(error);
-                                    },
-                                    success: function(library) {
+                                API.endpoint('/library/fetch').execute(function(response){
 
-                                        // Retrieve the vCard's roles
-                                        $.ajax({
-                                            url: '/api/categories/fetchAll',
-                                            headers: {'X-CSRF-Authorization': CSRF_KEY},
-                                            type: 'POST',dataType: 'json',
-                                            data: {
-                                                conditions: [
-                                                    {key: 'targetTable', operator: '=', value: 'vcards.role'},
-                                                ]
-                                            },
-                                            error: function(xhr, status, error) {
-                                                console.error('Error fetching roles:', error);
-                                                reject(error);
-                                            },
-                                            success: function(response) {
+                                    // Retrieve the vCard's roles
+                                    API.endpoint('/categories/fetchAll').data({
+                                        conditions: [
+                                            {key: 'targetTable', operator: '=', value: 'vcards.role'},
+                                        ]
+                                    }).execute(function(response){
 
-                                                // Create Role Options
-                                                const roles = [];
-                                                for(const [key, record] of Object.entries(response.records)){
-                                                    roles.push({id: record.name, text: builder.Locale.get(record.name)});
-                                                }
+                                        // Create Role Options
+                                        const roles = [];
+                                        for(const [key, record] of Object.entries(response.records)){
+                                            roles.push({id: record.name, text: builder.Locale.get(record.name)});
+                                        }
 
-                                                // Retrieve the vCard data
-                                                $.ajax({
-                                                    url: '/api/vcards/fetch?id='+self._properties.data,
-                                                    type: 'GET',dataType: 'json',
-                                                    success: function(response) {
+                                        // Retrieve the vCard data
+                                        API.endpoint('/vcards/fetch?id='+self._properties.data).execute(function(response){
 
-                                                        // Insert the name in the title
-                                                        if(response.record.name){
-                                                            component.header.title.label.append(': ' + response.record.name);
+                                            // Insert the name in the title
+                                            if(response.record.name){
+                                                component.header.title.label.append(': ' + response.record.name);
+                                            }
+
+                                            // Create the Form
+                                            self._builder.Utility(
+                                                'form',
+                                                component.body,
+                                                {
+                                                    class:{
+                                                        component: 'row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3',
+                                                    },
+                                                    callback: {
+                                                        submit: function(form){
+
+                                                            // Show the modal spinner
+                                                            modal.spinner(true);
+
+                                                            // Update the vCard
+                                                            API.endpoint('/vcards/update?id='+response.record.id).data(form.val()).execute(function(response){
+
+                                                                // Check if the callback is defined
+                                                                if(typeof callback === 'function'){
+                                                                    callback(response);
+                                                                }
+
+                                                                // Hide the modal
+                                                                modal.hide();
+                                                            },function(xhr, status, error){
+                                                                modal.hide();
+                                                            });
+                                                        },
+                                                    }
+                                                },
+                                                function(form,component){
+
+                                                    // Add event listener on the modal submit button
+                                                    parent.content.footer.submit.click(function(e){
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        form.submit();
+                                                    });
+
+                                                    // name
+                                                    form.add(
+                                                        'text',
+                                                        {
+                                                            name: 'name',
+                                                            label: self._builder.Locale.get('Name'),
+                                                            placeholder: self._builder.Locale.get('Enter name'),
+                                                            value: response.record.name,
+                                                            class: {
+                                                                component: 'col-12',
+                                                            },
                                                         }
-
-                                                        // Create the Form
-                                                        self._builder.Utility(
-                                                            'form',
-                                                            component.body,
+                                                    );
+                                                    // title
+                                                    if(['User','Contact'].includes(response.record.category)){
+                                                        form.add(
+                                                            'text',
                                                             {
-                                                                class:{
-                                                                    component: 'row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3',
+                                                                name: 'title',
+                                                                label: self._builder.Locale.get('Title'),
+                                                                placeholder: self._builder.Locale.get('Enter title'),
+                                                                value: response.record.title,
+                                                                class: {
+                                                                    component: 'col-12 col-md-6 col-lg-4',
                                                                 },
-                                                                callback: {
-                                                                    submit: function(form){
-
-                                                                        // Show the modal spinner
-                                                                        modal.spinner(true);
-
-                                                                        // Update the vCard
-                                                                        $.ajax({
-                                                                            url: '/api/vcards/update?id='+response.record.id,
-                                                                            headers: {'X-CSRF-Authorization': CSRF_KEY},
-                                                                            type: 'POST',dataType: 'json',
-                                                                            data: form.val(),
-                                                                            success: function(response) {
-
-                                                                                // Check if the callback is defined
-                                                                                if(typeof callback === 'function'){
-                                                                                    callback(response);
-                                                                                }
-
-                                                                                // Hide the modal
-                                                                                modal.hide();
-                                                                            }
-                                                                        });
-                                                                    },
-                                                                }
-                                                            },
-                                                            function(form,component){
-
-                                                                // Add event listener on the modal submit button
-                                                                parent.content.footer.submit.click(function(e){
-                                                                    e.preventDefault();
-                                                                    e.stopPropagation();
-                                                                    form.submit();
-                                                                });
-
-                                                                // name
-                                                                form.add(
-                                                                    'text',
-                                                                    {
-                                                                        name: 'name',
-                                                                        label: self._builder.Locale.get('Name'),
-                                                                        placeholder: self._builder.Locale.get('Enter name'),
-                                                                        value: response.record.name,
-                                                                        class: {
-                                                                            component: 'col-12',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // title
-                                                                if(['User','Contact'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'text',
-                                                                        {
-                                                                            name: 'title',
-                                                                            label: self._builder.Locale.get('Title'),
-                                                                            placeholder: self._builder.Locale.get('Enter title'),
-                                                                            value: response.record.title,
-                                                                            class: {
-                                                                                component: 'col-12 col-md-6 col-lg-4',
-                                                                            },
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // role
-                                                                if(['User','Contact'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'select2',
-                                                                        {
-                                                                            name: 'role',
-                                                                            label: self._builder.Locale.get('Role'),
-                                                                            placeholder: self._builder.Locale.get('Select role(s)'),
-                                                                            value: response.record.role,
-                                                                            class: {
-                                                                                component: 'col-12 col-md-6 col-lg-8',
-                                                                            },
-                                                                            multiple: true,
-                                                                            options: roles,
-                                                                            allowClear: true,
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // dba
-                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'text',
-                                                                        {
-                                                                            name: 'dba',
-                                                                            label: self._builder.Locale.get('DBA'),
-                                                                            placeholder: self._builder.Locale.get('Enter doing business as'),
-                                                                            value: response.record.dba,
-                                                                            class: {
-                                                                                component: 'col-12',
-                                                                            },
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // address
-                                                                form.add(
-                                                                    'text',
-                                                                    {
-                                                                        name: 'address',
-                                                                        label: self._builder.Locale.get('Address'),
-                                                                        placeholder: self._builder.Locale.get('Enter address'),
-                                                                        value: response.record.address,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-7',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // city
-                                                                form.add(
-                                                                    'text',
-                                                                    {
-                                                                        name: 'city',
-                                                                        label: self._builder.Locale.get('City'),
-                                                                        placeholder: self._builder.Locale.get('Enter city'),
-                                                                        value: response.record.city,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-5',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // country
-                                                                form.add(
-                                                                    'select2',
-                                                                    {
-                                                                        name: 'country',
-                                                                        label: self._builder.Locale.get('Country'),
-                                                                        placeholder: self._builder.Locale.get('Select country'),
-                                                                        value: response.record.country.code,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-4',
-                                                                        },
-                                                                        options: library.options.countries,
-                                                                        callback: {
-                                                                            onChange: function(input, component){
-
-                                                                                // Check if the state input exists
-                                                                                if(!form._inputs.state){
-                                                                                    return;
-                                                                                }
-
-                                                                                // Clear the state select2 options
-                                                                                form._inputs.state.delete();
-
-                                                                                // Add the new options based on the selected country
-                                                                                for(const [key, option] of Object.entries(library.options.states[input.val()] || [])){
-                                                                                    form._inputs.state.add(option.id, option.text);
-                                                                                }
-
-                                                                                // Reset the state value
-                                                                                form._inputs.state.reset();
-                                                                            }
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // state
-                                                                form.add(
-                                                                    'select2',
-                                                                    {
-                                                                        name: 'state',
-                                                                        label: self._builder.Locale.get('State'),
-                                                                        placeholder: self._builder.Locale.get('Select state'),
-                                                                        value: response.record.state.code,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-4',
-                                                                        },
-                                                                        options: library.options.states[response.record.country.code] || [],
-                                                                    }
-                                                                );
-                                                                // zipcode
-                                                                form.add(
-                                                                    'zipcode',
-                                                                    {
-                                                                        name: 'zipcode',
-                                                                        label: self._builder.Locale.get('Zipcode'),
-                                                                        placeholder: self._builder.Locale.get('Enter zipcode'),
-                                                                        value: response.record.zipcode,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-4',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // email
-                                                                form.add(
-                                                                    'email',
-                                                                    {
-                                                                        name: 'email',
-                                                                        label: self._builder.Locale.get('Email'),
-                                                                        placeholder: self._builder.Locale.get('Enter email'),
-                                                                        value: response.record.email,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-8',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // fax
-                                                                form.add(
-                                                                    'phone',
-                                                                    {
-                                                                        name: 'fax',
-                                                                        label: self._builder.Locale.get('Fax'),
-                                                                        placeholder: self._builder.Locale.get('Enter fax'),
-                                                                        value: response.record.fax,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-4',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // phone
-                                                                form.add(
-                                                                    'phoneExt',
-                                                                    {
-                                                                        name: 'phone',
-                                                                        label: self._builder.Locale.get('Phone'),
-                                                                        placeholder: self._builder.Locale.get('Enter phone'),
-                                                                        value: response.record.phone,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-4',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // mobile
-                                                                form.add(
-                                                                    'phone',
-                                                                    {
-                                                                        name: 'mobile',
-                                                                        label: self._builder.Locale.get('Mobile'),
-                                                                        placeholder: self._builder.Locale.get('Enter mobile'),
-                                                                        value: response.record.mobile,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-4',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // tollfree
-                                                                form.add(
-                                                                    'phoneInt',
-                                                                    {
-                                                                        name: 'tollfree',
-                                                                        label: self._builder.Locale.get('Tollfree'),
-                                                                        placeholder: self._builder.Locale.get('Enter tollfree'),
-                                                                        value: response.record.tollfree,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6 col-lg-4',
-                                                                        },
-                                                                    }
-                                                                );
-                                                                // businessNumber
-                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'businessNumber',
-                                                                        {
-                                                                            name: 'businessNumber',
-                                                                            label: self._builder.Locale.get('Business Number'),
-                                                                            placeholder: self._builder.Locale.get('Enter business number'),
-                                                                            value: response.record.businessNumber,
-                                                                            class: {
-                                                                                component: 'col-12 col-md-6 col-lg-4',
-                                                                            },
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // importerExtension
-                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'importerExtension',
-                                                                        {
-                                                                            name: 'importerExtension',
-                                                                            label: self._builder.Locale.get('Importer Extension'),
-                                                                            placeholder: self._builder.Locale.get('Enter importer extension (RM000N)'),
-                                                                            value: response.record.importerExtension,
-                                                                            class: {
-                                                                                component: 'col-12 col-md-6 col-lg-4',
-                                                                            },
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // taxExtension
-                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'taxExtension',
-                                                                        {
-                                                                            name: 'taxExtension',
-                                                                            label: self._builder.Locale.get('Tax Extension'),
-                                                                            placeholder: self._builder.Locale.get('Enter tax extension (RT000N)'),
-                                                                            value: response.record.taxExtension,
-                                                                            class: {
-                                                                                component: 'col-12 col-md-6 col-lg-4',
-                                                                            },
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // locale
-                                                                form.add(
-                                                                    'select2',
-                                                                    {
-                                                                        name: 'locale',
-                                                                        label: self._builder.Locale.get('Locale'),
-                                                                        placeholder: self._builder.Locale.get('Select locale'),
-                                                                        value: response.record.locale,
-                                                                        class: {
-                                                                            component: 'col-12 col-md-6',
-                                                                        },
-                                                                        options: library.options.locales,
-                                                                    }
-                                                                );
-                                                                // website
-                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'text',
-                                                                        {
-                                                                            name: 'website',
-                                                                            label: self._builder.Locale.get('Website'),
-                                                                            placeholder: self._builder.Locale.get('Enter website'),
-                                                                            value: response.record.website,
-                                                                            class: {
-                                                                                component: 'col-12 col-md-6',
-                                                                            },
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // industries
-                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'select2',
-                                                                        {
-                                                                            name: 'industries',
-                                                                            label: self._builder.Locale.get('Industries'),
-                                                                            placeholder: self._builder.Locale.get('Select industry(s)'),
-                                                                            value: response.record.industries,
-                                                                            class: {
-                                                                                component: 'col-12',
-                                                                            },
-                                                                            multiple: true,
-                                                                            options: library.options.industries,
-                                                                            allowClear: true,
-                                                                            allowNew: true,
-                                                                        }
-                                                                    );
-                                                                }
-                                                                // tags
-                                                                if(['Organization','Lead','Client'].includes(response.record.category)){
-                                                                    form.add(
-                                                                        'select2',
-                                                                        {
-                                                                            name: 'tags',
-                                                                            label: self._builder.Locale.get('Tags'),
-                                                                            placeholder: self._builder.Locale.get('Select tag(s)'),
-                                                                            value: response.record.tags,
-                                                                            class: {
-                                                                                component: 'col-12',
-                                                                            },
-                                                                            multiple: true,
-                                                                            options: library.options.tags,
-                                                                            allowClear: true,
-                                                                            allowNew: true,
-                                                                        }
-                                                                    );
-                                                                }
-
-                                                                // Resolve the promise
-                                                                resolve();
-                                                            },
+                                                            }
                                                         );
                                                     }
-                                                });
-                                            },
+                                                    // role
+                                                    if(['User','Contact'].includes(response.record.category)){
+                                                        form.add(
+                                                            'select2',
+                                                            {
+                                                                name: 'role',
+                                                                label: self._builder.Locale.get('Role'),
+                                                                placeholder: self._builder.Locale.get('Select role(s)'),
+                                                                value: response.record.role,
+                                                                class: {
+                                                                    component: 'col-12 col-md-6 col-lg-8',
+                                                                },
+                                                                multiple: true,
+                                                                options: roles,
+                                                                allowClear: true,
+                                                            }
+                                                        );
+                                                    }
+                                                    // dba
+                                                    if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                        form.add(
+                                                            'text',
+                                                            {
+                                                                name: 'dba',
+                                                                label: self._builder.Locale.get('DBA'),
+                                                                placeholder: self._builder.Locale.get('Enter doing business as'),
+                                                                value: response.record.dba,
+                                                                class: {
+                                                                    component: 'col-12',
+                                                                },
+                                                            }
+                                                        );
+                                                    }
+                                                    // address
+                                                    form.add(
+                                                        'text',
+                                                        {
+                                                            name: 'address',
+                                                            label: self._builder.Locale.get('Address'),
+                                                            placeholder: self._builder.Locale.get('Enter address'),
+                                                            value: response.record.address,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-7',
+                                                            },
+                                                        }
+                                                    );
+                                                    // city
+                                                    form.add(
+                                                        'text',
+                                                        {
+                                                            name: 'city',
+                                                            label: self._builder.Locale.get('City'),
+                                                            placeholder: self._builder.Locale.get('Enter city'),
+                                                            value: response.record.city,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-5',
+                                                            },
+                                                        }
+                                                    );
+                                                    // country
+                                                    form.add(
+                                                        'select2',
+                                                        {
+                                                            name: 'country',
+                                                            label: self._builder.Locale.get('Country'),
+                                                            placeholder: self._builder.Locale.get('Select country'),
+                                                            value: response.record.country.code,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-4',
+                                                            },
+                                                            options: library.options.countries,
+                                                            callback: {
+                                                                onChange: function(input, component){
+
+                                                                    // Check if the state input exists
+                                                                    if(!form._inputs.state){
+                                                                        return;
+                                                                    }
+
+                                                                    // Clear the state select2 options
+                                                                    form._inputs.state.delete();
+
+                                                                    // Add the new options based on the selected country
+                                                                    for(const [key, option] of Object.entries(library.options.states[input.val()] || [])){
+                                                                        form._inputs.state.add(option.id, option.text);
+                                                                    }
+
+                                                                    // Reset the state value
+                                                                    form._inputs.state.reset();
+                                                                }
+                                                            },
+                                                        }
+                                                    );
+                                                    // state
+                                                    form.add(
+                                                        'select2',
+                                                        {
+                                                            name: 'state',
+                                                            label: self._builder.Locale.get('State'),
+                                                            placeholder: self._builder.Locale.get('Select state'),
+                                                            value: response.record.state.code,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-4',
+                                                            },
+                                                            options: library.options.states[response.record.country.code] || [],
+                                                        }
+                                                    );
+                                                    // zipcode
+                                                    form.add(
+                                                        'zipcode',
+                                                        {
+                                                            name: 'zipcode',
+                                                            label: self._builder.Locale.get('Zipcode'),
+                                                            placeholder: self._builder.Locale.get('Enter zipcode'),
+                                                            value: response.record.zipcode,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-4',
+                                                            },
+                                                        }
+                                                    );
+                                                    // email
+                                                    form.add(
+                                                        'email',
+                                                        {
+                                                            name: 'email',
+                                                            label: self._builder.Locale.get('Email'),
+                                                            placeholder: self._builder.Locale.get('Enter email'),
+                                                            value: response.record.email,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-8',
+                                                            },
+                                                        }
+                                                    );
+                                                    // fax
+                                                    form.add(
+                                                        'phone',
+                                                        {
+                                                            name: 'fax',
+                                                            label: self._builder.Locale.get('Fax'),
+                                                            placeholder: self._builder.Locale.get('Enter fax'),
+                                                            value: response.record.fax,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-4',
+                                                            },
+                                                        }
+                                                    );
+                                                    // phone
+                                                    form.add(
+                                                        'phoneExt',
+                                                        {
+                                                            name: 'phone',
+                                                            label: self._builder.Locale.get('Phone'),
+                                                            placeholder: self._builder.Locale.get('Enter phone'),
+                                                            value: response.record.phone,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-4',
+                                                            },
+                                                        }
+                                                    );
+                                                    // mobile
+                                                    form.add(
+                                                        'phone',
+                                                        {
+                                                            name: 'mobile',
+                                                            label: self._builder.Locale.get('Mobile'),
+                                                            placeholder: self._builder.Locale.get('Enter mobile'),
+                                                            value: response.record.mobile,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-4',
+                                                            },
+                                                        }
+                                                    );
+                                                    // tollfree
+                                                    form.add(
+                                                        'phoneInt',
+                                                        {
+                                                            name: 'tollfree',
+                                                            label: self._builder.Locale.get('Tollfree'),
+                                                            placeholder: self._builder.Locale.get('Enter tollfree'),
+                                                            value: response.record.tollfree,
+                                                            class: {
+                                                                component: 'col-12 col-md-6 col-lg-4',
+                                                            },
+                                                        }
+                                                    );
+                                                    // businessNumber
+                                                    if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                        form.add(
+                                                            'businessNumber',
+                                                            {
+                                                                name: 'businessNumber',
+                                                                label: self._builder.Locale.get('Business Number'),
+                                                                placeholder: self._builder.Locale.get('Enter business number'),
+                                                                value: response.record.businessNumber,
+                                                                class: {
+                                                                    component: 'col-12 col-md-6 col-lg-4',
+                                                                },
+                                                            }
+                                                        );
+                                                    }
+                                                    // importerExtension
+                                                    if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                        form.add(
+                                                            'importerExtension',
+                                                            {
+                                                                name: 'importerExtension',
+                                                                label: self._builder.Locale.get('Importer Extension'),
+                                                                placeholder: self._builder.Locale.get('Enter importer extension (RM000N)'),
+                                                                value: response.record.importerExtension,
+                                                                class: {
+                                                                    component: 'col-12 col-md-6 col-lg-4',
+                                                                },
+                                                            }
+                                                        );
+                                                    }
+                                                    // taxExtension
+                                                    if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                        form.add(
+                                                            'taxExtension',
+                                                            {
+                                                                name: 'taxExtension',
+                                                                label: self._builder.Locale.get('Tax Extension'),
+                                                                placeholder: self._builder.Locale.get('Enter tax extension (RT000N)'),
+                                                                value: response.record.taxExtension,
+                                                                class: {
+                                                                    component: 'col-12 col-md-6 col-lg-4',
+                                                                },
+                                                            }
+                                                        );
+                                                    }
+                                                    // locale
+                                                    form.add(
+                                                        'select2',
+                                                        {
+                                                            name: 'locale',
+                                                            label: self._builder.Locale.get('Locale'),
+                                                            placeholder: self._builder.Locale.get('Select locale'),
+                                                            value: response.record.locale,
+                                                            class: {
+                                                                component: 'col-12 col-md-6',
+                                                            },
+                                                            options: library.options.locales,
+                                                        }
+                                                    );
+                                                    // website
+                                                    if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                        form.add(
+                                                            'text',
+                                                            {
+                                                                name: 'website',
+                                                                label: self._builder.Locale.get('Website'),
+                                                                placeholder: self._builder.Locale.get('Enter website'),
+                                                                value: response.record.website,
+                                                                class: {
+                                                                    component: 'col-12 col-md-6',
+                                                                },
+                                                            }
+                                                        );
+                                                    }
+                                                    // industries
+                                                    if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                        form.add(
+                                                            'select2',
+                                                            {
+                                                                name: 'industries',
+                                                                label: self._builder.Locale.get('Industries'),
+                                                                placeholder: self._builder.Locale.get('Select industry(s)'),
+                                                                value: response.record.industries,
+                                                                class: {
+                                                                    component: 'col-12',
+                                                                },
+                                                                multiple: true,
+                                                                options: library.options.industries,
+                                                                allowClear: true,
+                                                                allowNew: true,
+                                                            }
+                                                        );
+                                                    }
+                                                    // tags
+                                                    if(['Organization','Lead','Client'].includes(response.record.category)){
+                                                        form.add(
+                                                            'select2',
+                                                            {
+                                                                name: 'tags',
+                                                                label: self._builder.Locale.get('Tags'),
+                                                                placeholder: self._builder.Locale.get('Select tag(s)'),
+                                                                value: response.record.tags,
+                                                                class: {
+                                                                    component: 'col-12',
+                                                                },
+                                                                multiple: true,
+                                                                options: library.options.tags,
+                                                                allowClear: true,
+                                                                allowNew: true,
+                                                            }
+                                                        );
+                                                    }
+
+                                                    // Resolve the promise
+                                                    resolve();
+                                                },
+                                            );
+                                        },function(xhr, status, error){
+                                            modal.hide();
+                                            reject(error);
                                         });
-                                    },
+                                    },function(xhr, status, error){
+                                        modal.hide();
+                                        reject(error);
+                                    });
+                                },function(xhr, status, error){
+                                    modal.hide();
+                                    reject(error);
                                 });
                             } catch(e) { reject(e); }
                         });
