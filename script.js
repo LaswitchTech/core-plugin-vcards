@@ -609,20 +609,16 @@ function process_function_hasvCardProperty(task, value, callback = null){
     if(typeof task.target !== 'undefined' && typeof task.target.vcard !== 'undefined'){
 
         // AJAX Request
-        $.ajax({
-            url: '/api/vcards/fetch?id='+task.target.vcard.id,
-            type: 'GET',dataType: 'json',
-            success: function(response) {
+        API.endpoint('/vcards/fetch?id='+task.target.vcard.id).execute(function(response){
 
-                // Check if the vCard has the property
-                if(typeof response.record[value] !== 'undefined' && response.record[value] !== null && response.record[value] !== ''){
+            // Check if the vCard has the property
+            if(typeof response.record[value] !== 'undefined' && response.record[value] !== null && response.record[value] !== ''){
 
-                    // Execute Callback
-                    if(typeof callback === "function"){
-                        callback(task);
-                    }
+                // Execute Callback
+                if(typeof callback === "function"){
+                    callback(task);
                 }
-            },
+            }
         });
     }
 }
