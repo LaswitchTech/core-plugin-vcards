@@ -446,7 +446,7 @@ builder.add('widgets','vcard', class extends builder.ComponentClass {
                                 const parent = component.dialog;
 
                                 // Retrieve the libraries
-                                API.endpoint('/library/fetch').execute(function(response){
+                                API.endpoint('/library/fetch').execute(function(library){
 
                                     // Retrieve the vCard's roles
                                     API.endpoint('/categories/fetchAll').data({
