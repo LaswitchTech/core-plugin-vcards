@@ -31,7 +31,7 @@ class VcardsHelper extends Helper {
                 if(in_array($vcard['category'],['Lead','Organization','Client'])){
                     $html .= '<img data-type="avatar" data-vcard="'.$vcard['id'].'" class="rounded-circle border border-3 border-light" src="https://icons.duckduckgo.com/ip3/'.str_replace('/','',str_replace('https://','',str_replace('http://','',$vcard['website'] ?? ''))).'.ico" style="max-height: 186px; max-width: 186px; height: 186px; width: 186px; object-fit: contain; object-position: center;">';
                 } else {
-                    $grav_url = "https://www.gravatar.com/avatar/" . hash( "sha256", strtolower( trim( $vcard['email'] ) ) ) . "?s=192&d=mp";
+                    $grav_url = "https://www.gravatar.com/avatar/" . hash( "sha256", strtolower( trim( $vcard['email'] ?? '' ) ) ) . "?s=192&d=mp";
                     $html .= '<img data-type="avatar" data-vcard="'.$vcard['id'].'" class="rounded-circle border border-3 border-light" src="'.$grav_url.'" style="max-height: 186px; max-width: 186px; height: 186px; width: 186px; object-fit: contain; object-position: center;">';
                 }
             }
