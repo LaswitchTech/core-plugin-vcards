@@ -48,9 +48,6 @@ class VcardsEndpoint extends BaseEndpoint {
             // Save the edit mode
             $message['data']['edit'] = $edit;
 
-            // Load the preview
-            $message['data']['preview'] = $this->Helper->Vcards->format($message['data']['record'], $edit);
-
             // Check if the Relationship Plugin is accessible
             if($this->Helper->Core->isInstalled('relationship')){
                 $message['data']['dependencies']['relationship'] = $this->Model->Relationship->get($this->basename, $message['data']['record']['id']);
