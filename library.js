@@ -9,10 +9,12 @@ builder.add('renderers', 'vcard.tags', function(value, data, type){
         // Create element
         var element = $(document.createElement('div')).addClass('d-flex flex-wrap flex-row');
         for(const [key, unique] of Object.entries(value)){
-            $(document.createElement('span')).attr({
-                'class': 'badge text-bg-warning text-start text-wrap m-1',
-                'style': 'font-size: 0.8rem; max-width: 250px;',
-            }).html('<i class="me-1 bi bi-tag"></i>'+unique).appendTo(element);
+            if(unique){
+                $(document.createElement('span')).attr({
+                    'class': 'badge text-bg-warning text-start text-wrap m-1',
+                    'style': 'font-size: 0.8rem; max-width: 250px;',
+                }).html('<i class="me-1 bi bi-tag"></i>'+unique).appendTo(element);
+            }
         }
 
         // Return element
@@ -31,10 +33,12 @@ builder.add('renderers', 'vcard.industries', function(value, data, type){
         // Create element
         var element = $(document.createElement('div')).addClass('d-flex flex-wrap flex-row');
         for(const [key, unique] of Object.entries(value)){
-            $(document.createElement('span')).attr({
-                'class': 'badge text-bg-primary text-start text-wrap m-1',
-                'style': 'font-size: 0.8rem; max-width: 250px;',
-            }).html('<i class="me-1 bi bi-crosshair"></i>'+unique).appendTo(element);
+            if(unique){
+                $(document.createElement('span')).attr({
+                    'class': 'badge text-bg-primary text-start text-wrap m-1',
+                    'style': 'font-size: 0.8rem; max-width: 250px;',
+                }).html('<i class="me-1 bi bi-crosshair"></i>'+unique).appendTo(element);
+            }
         }
 
         // Return element
