@@ -35,7 +35,6 @@ class VcardsController extends Controller {
      */
     public function avatarAction(): array
     {
-
         // Retrieve the parameters
         $id = $this->Request->getParams('GET', 'id') ?? null;
         $email = $this->Request->getParams('GET', 'email') ?? 'Unknown';

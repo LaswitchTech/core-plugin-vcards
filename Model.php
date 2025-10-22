@@ -44,97 +44,19 @@ class VcardsModel extends BaseModel {
     }
 
     /**
-     * Retrieve multiple records
+     * Apply Joins to the Query
      *
-     * @param array $conditions
-     * @return array
+     * @param Query $Query
+     * @return Query
      */
-    public function fetchAll(array $conditions = [], string $conjunction = 'AND'): array
+    protected function joins(object $Query): object
     {
-        // Create the Query
-        $Query = $this->Database->query()
-            ->table($this->table)
-            ->select('*')
-            ->join('owner', 'users', 'username')
-            ->join('avatar', 'files', 'id')
+        // Apply Joins
+        $Query->join('avatar', 'files', 'id')
             ->join('country', 'countries', 'code')
-            ->join('state', 'states', 'code')
-            ->join('organization', 'organizations', 'id')
-            ->filter()
-            ->where('id', 9999, '<>')
-            ->where('organization', $this->Auth->user()->organization()->id);
+            ->join('state', 'states', 'code');
 
-        // Check if the conditions are empty
-        if(!empty($conditions)){
-
-            // Add a Filter
-            $Query->filter();
-
-            // Add the Conditions
-            foreach($conditions as $key => $condition){
-
-                // Check if the key exists in the definition
-                if(!array_key_exists($condition['key'], $this->definition)){
-
-                    // Remove the key from the data
-                    unset($conditions[$key]);
-                    continue;
-                }
-
-                // Add the condition to the Query
-                $Query->where($condition["key"], $condition["value"], $condition["operator"], $conjunction);
-            }
-        }
-
-        // Retrieve the Results
-        $records = $Query->fetch();
-
-        // Loop through the records to process them
-        foreach($records as $key => $record){
-
-            // Overwrite the record with the processed one
-            $records[$key] = $this->process($record);
-        }
-
-        // Return the Results
-        return $records;
-    }
-
-    /**
-     * Retrieve a single record
-     *
-     * @param int $id
-     * @return array
-     */
-    public function fetch(int $id): array
-    {
-        // Create the Query
-        $Query = $this->Database->query()
-            ->table($this->table)
-            ->select('*')
-            ->join('owner', 'users', 'username')
-            ->join('avatar', 'files', 'id')
-            ->join('country', 'countries', 'code')
-            ->join('state', 'states', 'code')
-            ->join('organization', 'organizations', 'id')
-            ->filter()
-            ->where('id', 9999, '<>')
-            ->filter()
-            ->where($this->primary, $id)
-            ->limit(1);
-
-        // Retrieve the record
-        $records = $Query->fetch();
-
-        // Loop through the records to process them
-        foreach($records as $key => $record){
-
-            // Overwrite the record with the processed one
-            $records[$key] = $this->process($record);
-        }
-
-        // Return the record or an empty array if not found
-        return $records[array_key_first($records)] ?? [];
+        return $Query;
     }
 
     /**
@@ -150,15 +72,24 @@ class VcardsModel extends BaseModel {
             ->table($this->table)
             ->select('*')
             ->join('owner', 'users', 'username')
-            ->join('avatar', 'files', 'id')
-            ->join('country', 'countries', 'code')
-            ->join('state', 'states', 'code')
-            ->join('organization', 'organizations', 'id')
+            ->join('owner.vcard', 'vcards', 'id')
             ->filter()
             ->where('id', 9999, '<>')
             ->filter()
             ->where('email', $email)
             ->limit(1);
+
+        // Verify the Organization
+        if(array_key_exists('organization',$this->definition)){
+            if($this->Auth->isAuthenticated()){
+                $Query->join('organization', 'organizations', 'id')
+                    ->join('organization.vcard', 'vcards', 'id')
+                    ->where('organization', $this->Auth->user()->organization()->id);
+            }
+        }
+
+        // Apply Joins
+        $Query = $this->joins($Query);
 
         // Retrieve the record
         $records = $Query->fetch();
@@ -187,15 +118,24 @@ class VcardsModel extends BaseModel {
             ->table($this->table)
             ->select('*')
             ->join('owner', 'users', 'username')
-            ->join('avatar', 'files', 'id')
-            ->join('country', 'countries', 'code')
-            ->join('state', 'states', 'code')
-            ->join('organization', 'organizations', 'id')
+            ->join('owner.vcard', 'vcards', 'id')
             ->filter()
             ->where('id', 9999, '<>')
             ->filter()
             ->where('website', $website)
             ->limit(1);
+
+        // Verify the Organization
+        if(array_key_exists('organization',$this->definition)){
+            if($this->Auth->isAuthenticated()){
+                $Query->join('organization', 'organizations', 'id')
+                    ->join('organization.vcard', 'vcards', 'id')
+                    ->where('organization', $this->Auth->user()->organization()->id);
+            }
+        }
+
+        // Apply Joins
+        $Query = $this->joins($Query);
 
         // Retrieve the record
         $records = $Query->fetch();
